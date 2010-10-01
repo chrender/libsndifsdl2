@@ -19,7 +19,7 @@ clean::
 	cd src/sound_sdl ; make clean
 
 distclean:: clean
-	rm libsndifsdl.mk
+	rm -f libsndifsdl.mk
 	cd src/sound_sdl; make distclean
 
 libsndifsdl.mk::
