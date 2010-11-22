@@ -700,9 +700,9 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
          )
         use_8bit_sound = true;
       else
-        use_8bit_sound
-          = strcmp(get_configuration_value("force-8bit-sound"), "true") == 0
-          ? true : false;
+        use_8bit_sound = false;
+          //= strcmp(get_configuration_value("force-8bit-sound"), "true") == 0
+          //? true : false;
 
       TRACE_LOG("8-bit sound: %d\n", use_8bit_sound);
 
