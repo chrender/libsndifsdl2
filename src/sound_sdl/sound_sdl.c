@@ -81,7 +81,7 @@
 //int yyy = 0;
 
 static char *sdl_interface_name = "libsdlsound";
-static char *sdl_interface_version = "0.7.0-b3";
+static char *sdl_interface_version = "0.7.0-b2";
 
 struct sound_effect
 {
