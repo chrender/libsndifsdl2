@@ -42,24 +42,22 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_main.h>
-#include <SDL/SDL_audio.h>
-#include <SDL/SDL_thread.h>
+#include <SDL.h>
+#include <SDL_main.h>
+#include <SDL_audio.h>
+#include <SDL_thread.h>
 
 #ifdef ENABLE_AIFF_FOR_SOUND_SDL
 #include "sndfile.h"
 #endif // ENABLE_AIFF_FOR_SOUND_SDL
 
-#include "fizmo/sound_interface/sound_interface.h"
-#include "fizmo/tools/tracelog.h"
-#include "fizmo/tools/unused.h"
-#include "fizmo/interpreter/zpu.h"
-#include "fizmo/interpreter/config.h"
-//#include "fizmo/i18n.h"
-#include "fizmo/interpreter/fizmo.h"
-#include "fizmo/interpreter/streams.h"
-//#include "../locales-fizmo/i18n_codes.h"
+#include "sound_interface/sound_interface.h"
+#include "tools/tracelog.h"
+#include "tools/unused.h"
+#include "interpreter/zpu.h"
+#include "interpreter/config.h"
+#include "interpreter/fizmo.h"
+#include "interpreter/streams.h"
 #include "sound_sdl.h"
 
 // Including timezone on linux doesn't work?
@@ -81,7 +79,7 @@
 //int yyy = 0;
 
 static char *sdl_interface_name = "libsdlsound";
-static char *sdl_interface_version = "0.7.0-b2";
+static char *sdl_interface_version = "0.7.0-b3";
 
 struct sound_effect
 {

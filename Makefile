@@ -3,47 +3,46 @@
 
 include config.mk
 
-all: src/sound_sdl/libsndifsdl.a libsndifsdl.mk
+PKG_DIR = $(INSTALL_PREFIX)/lib/pkgconfig
+PKGFILE = $(PKG_DIR)/libsndifsdl.pc
+
+
+all: libsndifsdl.a
+
+libsndifsdl.a: src/sound_sdl/libsndifsdl.a
+	mv src/sound_sdl/libsndifsdl.a .
 
 src/sound_sdl/libsndifsdl.a::
 	cd src/sound_sdl; make
 
-install: src/sound_sdl/libsndifsdl.a libsndifsdl.mk
+install: src/sound_sdl/libsndifsdl.a
 	mkdir -p $(INSTALL_PREFIX)/lib/fizmo
 	cp src/sound_sdl/libsndifsdl.a $(INSTALL_PREFIX)/lib/fizmo
-	cp libsndifsdl.mk $(INSTALL_PREFIX)/include/fizmo
 	mkdir -p $(INSTALL_PREFIX)/include/fizmo/sound_sdl
 	cp src/sound_sdl/sound_sdl.h $(INSTALL_PREFIX)/include/fizmo/sound_sdl
+	mkdir -p $(PKG_DIR)
+	echo 'prefix=$(INSTALL_PREFIX)' >$(PKGFILE)
+	echo 'exec_prefix=$${prefix}' >>$(PKGFILE)
+	echo 'libdir=$${exec_prefix}/lib/fizmo' >>$(PKGFILE)
+	echo 'includedir=$${prefix}/include/fizmo' >>$(PKGFILE)
+	echo >>$(PKGFILE)
+	echo 'Name: libsndifsdl' >>$(PKGFILE)
+	echo 'Description: libsndifsdl' >>$(PKGFILE)
+	echo 'Version: 0.7.0-b2' >>$(PKGFILE)
+ifeq ($(SOUNDSDL_PKG_REQS),)
+	echo 'Requires: libfizmo >= 0.7' >>$(PKGFILE)
+else
+	echo 'Requires: libfizmo >= 0.7, $(SOUNDSDL_PKG_REQS)' >>$(PKGFILE)
+endif
+	echo 'Requires.private:' >>$(PKGFILE)
+	echo 'Cflags: -I$(INSTALL_PREFIX)/include/fizmo $(SOUNDSDL_NONPKG_CFLAGS)' >>$(PKGFILE)
+	echo 'Libs: -L$(INSTALL_PREFIX)/lib/fizmo -lsndifsdl $(SOUNDSDL_PKG_LIBS)'  >>$(PKGFILE)
+	echo >>$(PKGFILE)
 
 clean::
 	cd src/sound_sdl ; make clean
 
 distclean:: clean
-	rm -f libsndifsdl.mk
+	rm -f libsndifsdl.a
 	cd src/sound_sdl; make distclean
-
-libsndifsdl.mk::
-	echo > libsndifsdl.mk
-	echo SOUND_INTERFACE_CFLAGS = -D_GNU_SOURCE=1 -D_THREAD_SAFE >> libsndifsdl.mk
-	echo SOUND_INTERFACE_LIBS = -lSDLmain -lSDL -lsndifsdl >> libsndifsdl.mk
-	echo >> libsndifsdl.mk
-	echo SOUND_INTERFACE_LIB_DIRS = -L$(SDL_LIB_DIR) >> libsndifsdl.mk
-	echo >> libsndifsdl.mk
-	echo SOUND_INTERFACE_STRUCT_NAME = sound_interface_sdl >> libsndifsdl.mk
-	echo SOUND_INTERFACE_INCLUDE_FILE = sound_sdl/sound_sdl.h >> libsndifsdl.mk
-	echo >> libsndifsdl.mk
-ifneq ($(SNDFILE_LIB_DIR),)
-	echo SOUND_INTERFACE_LIB_DIRS += -L$(SNDFILE_LIB_DIR) >> libsndifsdl.mk
-	echo SOUND_INTERFACE_LIBS += -lsndfile >> libsndifsdl.mk
-	echo >> libsndifsdl.mk
-endif
-
-# Include Lib-Dir from Macports:
-ifneq ($(EXTRA_LIB_DIRS),)
-	echo SOUND_INTERFACE_LIB_DIRS += $(EXTRA_LIB_DIRS) >> libsndifsdl.mk
-endif
-ifneq ($(EXTRA_LIBS),)
-	echo SOUND_INTERFACE_LIBS += $(EXTRA_LIBS) >> libsndifsdl.mk
-endif
-	echo >> libsndifsdl.mk
 
