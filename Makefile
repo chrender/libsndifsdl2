@@ -1,5 +1,5 @@
 
-.PHONY : all install install-locales clean distclean
+.PHONY : all install install-dev install-locales clean distclean
 
 include config.mk
 
@@ -18,7 +18,9 @@ libsndifsdl.a: src/sound_sdl/libsndifsdl.a
 src/sound_sdl/libsndifsdl.a::
 	cd src/sound_sdl; make
 
-install:: libsndifsdl.a install-locales
+install:: install-locales
+
+install-dev:: libsndifsdl.a
 	mkdir -p $(DEV_INSTALL_PREFIX)/lib/fizmo
 	cp libsndifsdl.a $(DEV_INSTALL_PREFIX)/lib/fizmo
 	mkdir -p $(DEV_INSTALL_PREFIX)/include/fizmo/sound_sdl
