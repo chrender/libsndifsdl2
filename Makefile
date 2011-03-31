@@ -1,9 +1,12 @@
 
-.PHONY : all install clean distclean
+.PHONY : all install install-locales clean distclean
 
 include config.mk
 
-PKG_DIR = $(INSTALL_PREFIX)/lib/pkgconfig
+ifeq ($(DEV_INSTALL_PREFIX),)
+  DEV_INSTALL_PREFIX=$(INSTALL_PREFIX)
+endif
+PKG_DIR = $(DEV_INSTALL_PREFIX)/lib/pkgconfig
 PKGFILE = $(PKG_DIR)/libsndifsdl.pc
 
 
@@ -15,13 +18,14 @@ libsndifsdl.a: src/sound_sdl/libsndifsdl.a
 src/sound_sdl/libsndifsdl.a::
 	cd src/sound_sdl; make
 
-install: src/sound_sdl/libsndifsdl.a
-	mkdir -p $(INSTALL_PREFIX)/lib/fizmo
-	cp src/sound_sdl/libsndifsdl.a $(INSTALL_PREFIX)/lib/fizmo
-	mkdir -p $(INSTALL_PREFIX)/include/fizmo/sound_sdl
-	cp src/sound_sdl/sound_sdl.h $(INSTALL_PREFIX)/include/fizmo/sound_sdl
+install:: libsndifsdl.a install-locales
+	mkdir -p $(DEV_INSTALL_PREFIX)/lib/fizmo
+	cp libsndifsdl.a $(DEV_INSTALL_PREFIX)/lib/fizmo
+	mkdir -p $(DEV_INSTALL_PREFIX)/include/fizmo/sound_sdl
+	cp src/sound_sdl/sound_sdl.h \
+	  $(DEV_INSTALL_PREFIX)/include/fizmo/sound_sdl
 	mkdir -p $(PKG_DIR)
-	echo 'prefix=$(INSTALL_PREFIX)' >$(PKGFILE)
+	echo 'prefix=$(DEV_INSTALL_PREFIX)' >$(PKGFILE)
 	echo 'exec_prefix=$${prefix}' >>$(PKGFILE)
 	echo 'libdir=$${exec_prefix}/lib/fizmo' >>$(PKGFILE)
 	echo 'includedir=$${prefix}/include/fizmo' >>$(PKGFILE)
@@ -35,9 +39,12 @@ else
 	echo 'Requires: libfizmo >= 0.7, $(SOUNDSDL_PKG_REQS)' >>$(PKGFILE)
 endif
 	echo 'Requires.private:' >>$(PKGFILE)
-	echo 'Cflags: -I$(INSTALL_PREFIX)/include/fizmo $(SOUNDSDL_NONPKG_CFLAGS)' >>$(PKGFILE)
-	echo 'Libs: -L$(INSTALL_PREFIX)/lib/fizmo -lsndifsdl $(SOUNDSDL_PKG_LIBS)'  >>$(PKGFILE)
+	echo 'Cflags: -I$(DEV_INSTALL_PREFIX)/include/fizmo $(SOUNDSDL_NONPKG_CFLAGS)' >>$(PKGFILE)
+	echo 'Libs: -L$(DEV_INSTALL_PREFIX)/lib/fizmo -lsndifsdl $(SOUNDSDL_PKG_LIBS)'  >>$(PKGFILE)
 	echo >>$(PKGFILE)
+
+install-locales:
+
 
 clean::
 	cd src/sound_sdl ; make clean
