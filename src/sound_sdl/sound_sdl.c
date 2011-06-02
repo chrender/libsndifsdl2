@@ -988,6 +988,23 @@ static char *get_sdl_interface_version()
 }
 
 
+static int sdl_parse_config_parameter(char *UNUSED(key), char *UNUSED(value))
+{
+  return -1;
+}
+
+
+static char *sdl_get_config_value(char *UNUSED(key))
+{
+  return NULL;
+}
+
+
+static char **sdl_get_config_option_names()
+{
+  return NULL;
+}
+
 
 struct z_sound_interface sound_interface_sdl =
 {
@@ -1000,7 +1017,10 @@ struct z_sound_interface sound_interface_sdl =
   &sdl_keyboard_input_has_occurred,
   &sdl_get_next_sound_end_routine,
   &get_sdl_interface_name,
-  &get_sdl_interface_version
+  &get_sdl_interface_version,
+  &sdl_parse_config_parameter,
+  &sdl_get_config_value,
+  &sdl_get_config_option_names
 };
 
 //sound_interface_sdl = &sound_interface_sdl_struct;
