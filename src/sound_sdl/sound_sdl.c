@@ -54,6 +54,7 @@
 #include "sound_interface/sound_interface.h"
 #include "tools/tracelog.h"
 #include "tools/unused.h"
+#include "tools/filesys.h"
 #include "interpreter/zpu.h"
 #include "interpreter/config.h"
 #include "interpreter/fizmo.h"
@@ -617,7 +618,7 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
   struct sound_effect *effect;
   //int delay;
   int nof_repeats_from_file;
-  FILE *in;
+  z_file *in;
   int src_len, base_note, frequency;
 #ifdef ENABLE_AIFF_FOR_SOUND_SDL
   SF_INFO sfinfo;
@@ -669,8 +670,11 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
   else if ((sound_blorb_index
         = get_sound_blorb_index(active_z_story, sound_nr)) != NULL)
   {
-    fd = fileno(active_z_story->blorb_file);
-    lseek(fd, sound_blorb_index->blorb_offset, SEEK_SET);
+    fsi->setfilepos(
+        active_z_story->blorb_file, sound_blorb_index->blorb_offset, SEEK_SET);
+    fd = fsi->get_fileno(active_z_story->blorb_file);
+    //lseek(fd, sound_blorb_index->blorb_offset, SEEK_SET);
+    // removed above for filesys conversion.
 
     memset(&sfinfo, 0, sizeof (sfinfo));
 
@@ -771,13 +775,15 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
         sdl_directory_name, sdl_file_prefix, sound_nr);
 
     TRACE_LOG("[sound]Trying to open sound file \"%s\".\n", sdl_snd_filename);
-    if ((in = fopen(sdl_snd_filename, "r")) == NULL)
+    if ((in = fsi->openfile(sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ))
+        == NULL)
     {
       sprintf(sdl_snd_filename, "%s/%s%02d.SND",
           sdl_directory_name, sdl_file_prefix, sound_nr);
 
       TRACE_LOG("[sound]Trying to open sound file \"%s\".\n", sdl_snd_filename);
-      if ((in = fopen(sdl_snd_filename, "r")) == NULL)
+      if ((in = fsi->openfile(
+              sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
       {
         sprintf(sdl_snd_filename, "%s/%s%02d.SND",
             sdl_directory_name, sdl_file_prefix_upper, sound_nr);
@@ -785,7 +791,8 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
         TRACE_LOG("[sound]Trying to open sound file \"%s\".\n",
             sdl_snd_filename);
 
-        if ((in = fopen(sdl_snd_filename, "r")) == NULL)
+        if ((in = fsi->openfile(
+                sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
         {
           sprintf(sdl_snd_filename, "%s/%s%02d.snd",
               sdl_directory_name, sdl_file_prefix_lower, sound_nr);
@@ -793,7 +800,8 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
           TRACE_LOG("[sound]Trying to open sound file \"%s\".\n",
               sdl_snd_filename);
 
-          if ((in = fopen(sdl_snd_filename, "r")) == NULL)
+          if ((in = fsi->openfile(
+                  sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
           {
             free(effect);
             return;
@@ -802,13 +810,13 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
       }
     }
 
-    src_len = ((int)fgetc(in) << 8) | fgetc(in);
-    nof_repeats_from_file = (int)fgetc(in);
+    src_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
+    nof_repeats_from_file = (int)fsi->getchar(in);
     TRACE_LOG("[sound]repeats to play from file: %d.\n", nof_repeats_from_file);
-    base_note = (int)fgetc(in);
-    frequency = ((int)fgetc(in) << 8) | fgetc(in);
-    fseek(in, 2, SEEK_CUR);
-    effect->data_len = ((int)fgetc(in) << 8) | fgetc(in);
+    base_note = (int)fsi->getchar(in);
+    frequency = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
+    fsi->setfilepos(in, 2, SEEK_CUR);
+    effect->data_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
 
     effect->is_internal_effect = false;
     effect->format = AUDIO_U8;
@@ -817,8 +825,8 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
     effect->data = fizmo_malloc(effect->data_len);
 
     //delay = 0;
-    fread(effect->data, effect->data_len, 1, in);
-    fclose(in);
+    fsi->getchars(effect->data, effect->data_len, in);
+    fsi->closefile(in);
 
     if (repeats >= 1)
       effect->nof_repeats = (repeats == 255 ? -1 : repeats);
