@@ -77,8 +77,6 @@
 #define TONE_330_HZ_SAMPLE_SIZE 800
 #define TONE_330_HZ_REPEATS 6
 
-//int yyy = 0;
-
 static char *sdl_interface_name = "libsdlsound";
 static char *sdl_interface_version = "0.7.0-b3";
 
@@ -130,6 +128,8 @@ static bool read_has_occurred = true;
 static bool flush_sound_effect_stack = false;
 //Mix_Chunk *sound_effect_chunk = NULL;
 //uint16_t routine_after_playback = 0;
+static bool force_8bit_sound = false;
+static char *config_option_names[] = { "force-8bit-sound", NULL } ;
 
 static SDL_TimerID sdl_finish_timer = NULL;
 
@@ -702,9 +702,11 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
          )
         use_8bit_sound = true;
       else
-        use_8bit_sound = false;
-          //= strcmp(get_configuration_value("force-8bit-sound"), "true") == 0
-          //? true : false;
+        use_8bit_sound
+          = strcmp(get_configuration_value("force-8bit-sound"),
+              config_true_value) == 0
+          ? true
+          : false;
 
       TRACE_LOG("8-bit sound: %d\n", use_8bit_sound);
 
@@ -996,21 +998,48 @@ static char *get_sdl_interface_version()
 }
 
 
-static int sdl_parse_config_parameter(char *UNUSED(key), char *UNUSED(value))
+static int sdl_parse_config_parameter(char *key, char *value)
 {
-  return -1;
+  if (strcasecmp(key, "force-8bit-sound") == 0)
+  {
+    if (
+        (value == NULL)
+        ||
+        (*value == 0)
+        ||
+        (strcmp(value, config_true_value) == 0)
+       )
+      force_8bit_sound = true;
+    else
+      force_8bit_sound = false;
+    free(value);
+    return 0;
+  }
+  else
+  {
+    return -2;
+  }
 }
 
 
-static char *sdl_get_config_value(char *UNUSED(key))
+static char *sdl_get_config_value(char *key)
 {
-  return NULL;
+  if (strcasecmp(key, "force-8bit-sound") == 0)
+  {
+    return force_8bit_sound == true
+      ? config_true_value
+      : config_false_value;
+  }
+  else
+  {
+    return NULL;
+  }
 }
 
 
 static char **sdl_get_config_option_names()
 {
-  return NULL;
+  return config_option_names;
 }
 
 
