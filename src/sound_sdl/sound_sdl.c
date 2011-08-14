@@ -59,6 +59,7 @@
 #include "interpreter/config.h"
 #include "interpreter/fizmo.h"
 #include "interpreter/streams.h"
+#include "interpreter/blorb.h"
 #include "sound_sdl.h"
 
 // Including timezone on linux doesn't work?
@@ -626,9 +627,11 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
   int index, len;
   int i;
   bool use_8bit_sound;
-  struct z_story_blorb_sound *sound_blorb_index;
+  //struct z_story_blorb_sound *sound_blorb_index;
+  long sound_blorb_index;
   int fd;
   short shortbuf[256];
+  int v3_sound_loops;
 #endif // ENABLE_AIFF_FOR_SOUND_SDL
   /*
 #ifdef ENABLE_TRACING
@@ -667,11 +670,14 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
     }
   }
 #ifdef ENABLE_AIFF_FOR_SOUND_SDL
+  //else if ((sound_blorb_index
+  //      = get_sound_blorb_index(active_z_story, sound_nr)) != NULL)
   else if ((sound_blorb_index
-        = get_sound_blorb_index(active_z_story, sound_nr)) != NULL)
+        = active_blorb_interface->get_blorb_offset(
+          active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1)
   {
     fsi->setfilepos(
-        active_z_story->blorb_file, sound_blorb_index->blorb_offset, SEEK_SET);
+        active_z_story->blorb_file, sound_blorb_index, SEEK_SET);
     fd = fsi->get_fileno(active_z_story->blorb_file);
     //lseek(fd, sound_blorb_index->blorb_offset, SEEK_SET);
     // removed above for filesys conversion.
@@ -727,12 +733,20 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
         effect->data = fizmo_malloc(sfinfo.frames * sfinfo.channels * 2);
       }
 
-      effect->nof_repeats
-        = ver < 5
-        ? (sound_blorb_index->v3_number_of_loops == 0
-            ? -1
-            : sound_blorb_index->v3_number_of_loops)
-        : repeats;
+      if (ver < 5)
+      {
+        v3_sound_loops = get_v3_sound_loops_from_blorb_map(
+            active_z_story->blorb_map, sound_nr);
+
+        effect->nof_repeats
+          = v3_sound_loops >= 1
+          ? v3_sound_loops
+          : -1;
+      }
+      else
+      {
+        effect->nof_repeats = repeats;
+      }
 
       TRACE_LOG("[sound]channels: %d, freq: %d, samples: %ld, repeats:%d.\n",
           sfinfo.channels, sfinfo.samplerate, (long int)sfinfo.frames,
