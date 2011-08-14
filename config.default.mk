@@ -12,39 +12,36 @@ else
 INSTALL_PREFIX = $(HOME)/opt/fizmo
 endif
 
-DEFAULT_PREFIX = /usr
-DEFAULT_LIB_PREFIX = $(DEFAULT_PREFIX)/lib
-DEFAULT_INC_PREFIX = $(DEFAULT_PREFIX)/include
 
-FIZMO_INC_DIR = $(INSTALL_PREFIX)/include
-FIZMO_LIB_DIR = $(INSTALL_PREFIX)/lib
-
-SDL_INC_DIR = $(DEFAULT_INC_PREFIX)
-SDL_LIB_DIR = $(DEFAULT_LIB_PREFIX)
-
-# These lines are used for providing extra lib (dirs), currently used
-# for Mac OS.
-EXTRA_LIB_DIRS =
-EXTRA_LIBS =
-
-# If you have libsndfile available, fizmo will be able to read AIFF from
-# blorbs:
-ENABLE_AIFF_FOR_SOUND_SDL = 1
-SNDFILE_INC_DIR = $(DEFAULT_INC_PREFIX)
-SNDFILE_LIB_DIR = $(DEFAULT_LIB_PREFIX)
-
-# These lines are used for providing extra lib (dirs), used for Mac OS.
-EXTRA_LIB_DIRS =
-EXTRA_LIBS =
-
-# This adds an -O2 flag (usually okay):
+# -----
+# General settings:
 ENABLE_OPTIMIZATION = 1
-
-# Debug-Flags:
-
-# Uncomment to fill your harddisk _very_ fast:
 #ENABLE_TRACING = 1
-
-# Add GDB symbols, only useful for debuggong:
 #ENABLE_GDB_SYMBOLS = 1
+# -----
+
+
+
+# -----
+# Setting for sound-sdl:
+ENABLE_AIFF_FOR_SOUND_SDL = 1
+
+# If the "sdl" and "sndfile" packages may be found using the commands
+#"pkg-config --modversion sdl" and "pkg-config --modversion sndfile", fizmo
+# will automatically locate the required files using the following lines:
+SOUNDSDL_PKG_REQS = sdl, sndfile
+SOUNDSDL_PKG_CFLAGS = $(shell pkg-config --cflags sdl) \
+                       $(shell pkg-config --cflags sndfile)
+SOUNDSDL_PKG_LIBS = $(shell pkg-config --libs sdl) \
+                       $(shell pkg-config --libs-sndfile)
+
+# If either "sdl" or "sndfile" cannot be found using pkg-config, you have
+# to provide the required flags in the following two lines:
+SOUNDSDL_NONPKG_CFLAGS =
+SOUNDSDL_PKG_LIBS =
+
+# The "sound-sdl" modules always requires "sdl" to work. In case "sndfile"
+# is not available, you can still compile it if ENABLE_AIFF_FOR_SOUND_SDL
+# is disabled above.
+# -----
 
