@@ -79,7 +79,7 @@
 #define TONE_330_HZ_REPEATS 6
 
 static char *sdl_interface_name = "libsdlsound";
-static char *sdl_interface_version = "0.7.0-b4";
+static char *sdl_interface_version = "0.7.0-b5";
 
 struct sound_effect
 {
@@ -240,6 +240,8 @@ Uint8 tone330hz[] = {
   0xec, 0xd7, 0xbc, 0x9d, 0x7c, 0x5b, 0x3d, 0x23, 0x10, 0x04, 0x00, 0x05,
   0x12, 0x27, 0x40, 0x5f, 0x80, 0xa1, 0xbf, 0xda };
 
+
+
 static void clear_all_effects_from_stack()
 {
   int i;
@@ -363,7 +365,8 @@ void mixaudio(void *UNUSED(unused), Uint8 *stream, int len)
             interval
               = ((double)size / (double)current_effect->freq)
               * 1000
-              + 100; //timing-safety
+              + 1000; //timing-safety
+              // + 100; //timing-safety
             TRACE_LOG("\n\n[sound]interval(%d/%d):%u ms\n",
                 size, current_effect->freq, interval);
             sdl_finish_timer = SDL_AddTimer(
@@ -669,149 +672,140 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
       effect->nof_repeats = TONE_330_HZ_REPEATS;
     }
   }
-#ifdef ENABLE_AIFF_FOR_SOUND_SDL
-  //else if ((sound_blorb_index
-  //      = get_sound_blorb_index(active_z_story, sound_nr)) != NULL)
-  else if ((sound_blorb_index
-        = active_blorb_interface->get_blorb_offset(
-          active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1)
+  else
   {
-    fsi->setfilepos(
-        active_z_story->blorb_file, sound_blorb_index, SEEK_SET);
-    fd = fsi->get_fileno(active_z_story->blorb_file);
-    //lseek(fd, sound_blorb_index->blorb_offset, SEEK_SET);
-    // removed above for filesys conversion.
-
-    memset(&sfinfo, 0, sizeof (sfinfo));
-
-    if ((sndfile = sf_open_fd(
-            fd,
-            SFM_READ,
-            &sfinfo,
-            SF_FALSE)) != NULL)
+#ifdef ENABLE_AIFF_FOR_SOUND_SDL
+    TRACE_LOG("Trying to find blorb sound number %d.\n", sound_nr);
+    if ((sound_blorb_index = active_blorb_interface->get_blorb_offset(
+            active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1)
     {
-      TRACE_LOG("open ok.\n");
+      fd = fsi->get_fileno(active_z_story->blorb_file);
+      TRACE_LOG("Seeking pos %x\n", sound_blorb_index-8);
+      lseek(fd, sound_blorb_index-8, SEEK_SET);
 
-      if (sfinfo.channels > 2)
+      memset(&sfinfo, 0, sizeof (sfinfo));
+
+      if ((sndfile = sf_open_fd(
+              fd,
+              SFM_READ,
+              &sfinfo,
+              SF_FALSE)) != NULL)
       {
-        free(effect);
-        sf_close(sndfile);
-        return;
-      }
+        TRACE_LOG("open ok.\n");
 
-      if (
-          ((sfinfo.format & SF_FORMAT_PCM_S8) != 0)
-          ||
-          ((sfinfo.format & SF_FORMAT_PCM_U8) != 0)
-          ||
-          ((sfinfo.format & SF_FORMAT_DPCM_8) != 0)
-         )
-        use_8bit_sound = true;
-      else
-        use_8bit_sound
-          = strcmp(get_configuration_value("force-8bit-sound"),
-              config_true_value) == 0
-          ? true
-          : false;
-
-      TRACE_LOG("8-bit sound: %d\n", use_8bit_sound);
-
-      effect->is_internal_effect = false;
-      effect->nof_channels = sfinfo.channels;
-      effect->freq = sfinfo.samplerate;
-      effect->data_len = sfinfo.frames;
-
-      if (use_8bit_sound == true)
-      {
-        effect->format = AUDIO_S8;
-        effect->data = fizmo_malloc(sfinfo.frames * sfinfo.channels);
-      }
-      else
-      {
-        effect->format = AUDIO_S16;
-        effect->data_len *= 2;
-        effect->data = fizmo_malloc(sfinfo.frames * sfinfo.channels * 2);
-      }
-
-      if (ver < 5)
-      {
-        v3_sound_loops = get_v3_sound_loops_from_blorb_map(
-            active_z_story->blorb_map, sound_nr);
-
-        effect->nof_repeats
-          = v3_sound_loops >= 1
-          ? v3_sound_loops
-          : -1;
-      }
-      else
-      {
-        effect->nof_repeats = repeats;
-      }
-
-      TRACE_LOG("[sound]channels: %d, freq: %d, samples: %ld, repeats:%d.\n",
-          sfinfo.channels, sfinfo.samplerate, (long int)sfinfo.frames,
-          effect->nof_repeats);
-
-      index = 0;
-      while ((len = sf_readf_short(
-              sndfile,
-              shortbuf,
-              128 * sfinfo.channels)) > 0)
-      {
-        for (i=0; i<len * sfinfo.channels; i++)
+        if (sfinfo.channels > 2)
         {
-          //TRACE_LOG("%d: %d\n", index, shortbuf[i] / 256 + 128);
+          free(effect);
+          sf_close(sndfile);
+          return;
+        }
 
-          if (use_8bit_sound == true)
-            effect->data[index++] = shortbuf[i] >> 8;
-          else
+        if (
+            ((sfinfo.format & SF_FORMAT_PCM_S8) != 0)
+            ||
+            ((sfinfo.format & SF_FORMAT_PCM_U8) != 0)
+            ||
+            ((sfinfo.format & SF_FORMAT_DPCM_8) != 0)
+           )
+          use_8bit_sound = true;
+        else
+          use_8bit_sound
+            = strcmp(get_configuration_value("force-8bit-sound"),
+                config_true_value) == 0
+            ? true
+            : false;
+
+        TRACE_LOG("8-bit sound: %d\n", use_8bit_sound);
+
+        effect->is_internal_effect = false;
+        effect->nof_channels = sfinfo.channels;
+        effect->freq = sfinfo.samplerate;
+        effect->data_len = sfinfo.frames;
+
+        if (use_8bit_sound == true)
+        {
+          effect->format = AUDIO_S8;
+          effect->data = fizmo_malloc(sfinfo.frames * sfinfo.channels);
+        }
+        else
+        {
+          effect->format = AUDIO_S16;
+          effect->data_len *= 2;
+          effect->data = fizmo_malloc(sfinfo.frames * sfinfo.channels * 2);
+        }
+
+        if (ver < 5)
+        {
+          v3_sound_loops = get_v3_sound_loops_from_blorb_map(
+              active_z_story->blorb_map, sound_nr);
+
+          effect->nof_repeats
+            = v3_sound_loops >= 1
+            ? v3_sound_loops
+            : -1;
+        }
+        else
+        {
+          effect->nof_repeats = repeats;
+        }
+
+        TRACE_LOG("[sound]channels: %d, freq: %d, samples: %ld, repeats:%d.\n",
+            sfinfo.channels, sfinfo.samplerate, (long int)sfinfo.frames,
+            effect->nof_repeats);
+
+        index = 0;
+        while ((len = sf_readf_short(
+                sndfile,
+                shortbuf,
+                128 * sfinfo.channels)) > 0)
+        {
+          for (i=0; i<len * sfinfo.channels; i++)
           {
-            effect->data[index++] = shortbuf[i] & 0xff;
-            effect->data[index++] = shortbuf[i] >> 8;
+            //TRACE_LOG("%d: %d\n", index, shortbuf[i] / 256 + 128);
+
+            if (use_8bit_sound == true)
+              effect->data[index++] = shortbuf[i] >> 8;
+            else
+            {
+              effect->data[index++] = shortbuf[i] & 0xff;
+              effect->data[index++] = shortbuf[i] >> 8;
+            }
           }
         }
+
+        sf_close(sndfile);
       }
-
-      sf_close(sndfile);
+      else
+      {
+        TRACE_LOG("retval: %s\n", sf_strerror(NULL));
+        return;
+      }
     }
-    else
-    {
-      TRACE_LOG("retval: %s\n", sf_strerror(NULL));
-    }
-  }
 #endif // ENABLE_AIFF_FOR_SOUND_SDL
-  else if (
-      (sdl_directory_name != NULL)
-      &&
-      (sdl_file_prefix != NULL)
-      )
-  {
-    // Try ".SND" effects
-    sprintf(sdl_snd_filename, "%s/%s%02d.snd",
-        sdl_directory_name, sdl_file_prefix, sound_nr);
-
-    TRACE_LOG("[sound]Trying to open sound file \"%s\".\n", sdl_snd_filename);
-    if ((in = fsi->openfile(sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ))
-        == NULL)
+    else if (
+        (sdl_directory_name != NULL)
+        &&
+        (sdl_file_prefix != NULL)
+        )
     {
-      sprintf(sdl_snd_filename, "%s/%s%02d.SND",
+      // Try ".SND" effects
+      sprintf(sdl_snd_filename, "%s/%s%02d.snd",
           sdl_directory_name, sdl_file_prefix, sound_nr);
 
       TRACE_LOG("[sound]Trying to open sound file \"%s\".\n", sdl_snd_filename);
-      if ((in = fsi->openfile(
-              sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
+      if ((in = fsi->openfile(sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ))
+          == NULL)
       {
         sprintf(sdl_snd_filename, "%s/%s%02d.SND",
-            sdl_directory_name, sdl_file_prefix_upper, sound_nr);
+            sdl_directory_name, sdl_file_prefix, sound_nr);
 
         TRACE_LOG("[sound]Trying to open sound file \"%s\".\n",
             sdl_snd_filename);
-
         if ((in = fsi->openfile(
                 sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
         {
-          sprintf(sdl_snd_filename, "%s/%s%02d.snd",
-              sdl_directory_name, sdl_file_prefix_lower, sound_nr);
+          sprintf(sdl_snd_filename, "%s/%s%02d.SND",
+              sdl_directory_name, sdl_file_prefix_upper, sound_nr);
 
           TRACE_LOG("[sound]Trying to open sound file \"%s\".\n",
               sdl_snd_filename);
@@ -819,46 +813,57 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
           if ((in = fsi->openfile(
                   sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
           {
-            free(effect);
-            return;
+            sprintf(sdl_snd_filename, "%s/%s%02d.snd",
+                sdl_directory_name, sdl_file_prefix_lower, sound_nr);
+
+            TRACE_LOG("[sound]Trying to open sound file \"%s\".\n",
+                sdl_snd_filename);
+
+            if ((in = fsi->openfile(
+                    sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
+            {
+              free(effect);
+              return;
+            }
           }
         }
       }
+
+      src_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
+      nof_repeats_from_file = (int)fsi->getchar(in);
+      TRACE_LOG("[sound]repeats to play from file: %d.\n",
+          nof_repeats_from_file);
+      base_note = (int)fsi->getchar(in);
+      frequency = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
+      fsi->setfilepos(in, 2, SEEK_CUR);
+      effect->data_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
+
+      effect->is_internal_effect = false;
+      effect->format = AUDIO_U8;
+      effect->nof_channels = 1;
+      effect->freq = frequency;
+      effect->data = fizmo_malloc(effect->data_len);
+
+      //delay = 0;
+      fsi->getchars(effect->data, effect->data_len, in);
+      fsi->closefile(in);
+
+      if (repeats >= 1)
+        effect->nof_repeats = (repeats == 255 ? -1 : repeats);
+      else if (nof_repeats_from_file == 0)
+        effect->nof_repeats = -1;
+      else
+        effect->nof_repeats = nof_repeats_from_file;
+
+      TRACE_LOG("[sound]Repeats: %d, Volume: %d\n",
+          effect->nof_repeats, effect->sound_volume);
     }
-
-    src_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
-    nof_repeats_from_file = (int)fsi->getchar(in);
-    TRACE_LOG("[sound]repeats to play from file: %d.\n", nof_repeats_from_file);
-    base_note = (int)fsi->getchar(in);
-    frequency = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
-    fsi->setfilepos(in, 2, SEEK_CUR);
-    effect->data_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
-
-    effect->is_internal_effect = false;
-    effect->format = AUDIO_U8;
-    effect->nof_channels = 1;
-    effect->freq = frequency;
-    effect->data = fizmo_malloc(effect->data_len);
-
-    //delay = 0;
-    fsi->getchars(effect->data, effect->data_len, in);
-    fsi->closefile(in);
-
-    if (repeats >= 1)
-      effect->nof_repeats = (repeats == 255 ? -1 : repeats);
-    else if (nof_repeats_from_file == 0)
-      effect->nof_repeats = -1;
     else
-      effect->nof_repeats = nof_repeats_from_file;
-
-    TRACE_LOG("[sound]Repeats: %d, Volume: %d\n",
-        effect->nof_repeats, effect->sound_volume);
-  }
-  else
-  {
-    TRACE_LOG("[sound]Not found.\n");
-    free(effect);
-    return;
+    {
+      TRACE_LOG("[sound]Not found.\n");
+      free(effect);
+      return;
+    }
   }
 
   effect->sound_volume
