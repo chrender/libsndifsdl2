@@ -79,7 +79,7 @@
 #define TONE_330_HZ_REPEATS 6
 
 static char *sdl_interface_name = "libsdlsound";
-static char *sdl_interface_version = "0.7.0-b5";
+static char *sdl_interface_version = "0.7.0";
 
 struct sound_effect
 {
