@@ -5,6 +5,8 @@ include config.mk
 
 ifeq ($(fizmo_build_prefix),)
   fizmo_build_prefix="$(prefix)"
+else
+  fizmo_build_prefix="$(DESTDIR)$(prefix)"
 endif
 PKG_DIR = $(fizmo_build_prefix)/lib/pkgconfig
 PKGFILE = $(PKG_DIR)/libsndifsdl.pc
