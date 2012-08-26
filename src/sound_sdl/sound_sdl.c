@@ -781,8 +781,11 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
         return;
       }
     }
+    else if 
+#else // ENABLE_AIFF_FOR_SOUND_SDL
+    if 
 #endif // ENABLE_AIFF_FOR_SOUND_SDL
-    else if (
+        (
         (sdl_directory_name != NULL)
         &&
         (sdl_file_prefix != NULL)
