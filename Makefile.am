@@ -11,7 +11,7 @@ PKGFILE = $(PKG_DIR)/libsndifsdl.pc
 SUBDIRS = src/sound_sdl .
 noinst_LIBRARIES = libsndifsdl.a
 
-libsndifsdl.a::
+libsndifsdl.a:
 	cd src/sound_sdl ; make
 	mv src/sound_sdl/libsndifsdl.a .
 
