@@ -41,7 +41,7 @@ PKGFILE = $(PKG_DIR)/libsndifsdl.pc
 SUBDIRS = src/sound_sdl .
 noinst_LIBRARIES = libsndifsdl.a
 
-libsndifsdl.a:
+libsndifsdl.a::
 	cd src/sound_sdl ; make
 	mv src/sound_sdl/libsndifsdl.a .
 
@@ -59,7 +59,7 @@ install-dev:: libsndifsdl.a
 	echo >>$(PKGFILE)
 	echo 'Name: libsndifsdl' >>$(PKGFILE)
 	echo 'Description: libsndifsdl' >>$(PKGFILE)
-	echo 'Version: 0.7.3' >>$(PKGFILE)
+	echo 'Version: 0.7.4' >>$(PKGFILE)
 	echo 'Requires: libfizmo >= 0.7.4, $(LIBSNDIFSDL_REQS)' >>$(PKGFILE)
 	echo 'Requires.private:' >>$(PKGFILE)
 	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(SOUNDSDL_NONPKG_CFLAGS)' >>$(PKGFILE)
