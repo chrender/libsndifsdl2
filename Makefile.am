@@ -59,13 +59,13 @@ install-dev:: libsndifsdl.a
 	echo >>$(PKGFILE)
 	echo 'Name: libsndifsdl' >>$(PKGFILE)
 	echo 'Description: libsndifsdl' >>$(PKGFILE)
-	echo 'Version: 0.7.4' >>$(PKGFILE)
+	echo 'Version: 0.7.5' >>$(PKGFILE)
 	echo 'Requires: libfizmo >= 0.7.4, $(LIBSNDIFSDL_REQS)' >>$(PKGFILE)
 	echo 'Requires.private:' >>$(PKGFILE)
 	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(SOUNDSDL_NONPKG_CFLAGS)' >>$(PKGFILE)
 	echo 'Libs: -L$(fizmo_build_prefix)/lib/fizmo -lsndifsdl $(SOUNDSDL_PKG_LIBS)'  >>$(PKGFILE)
 	echo >>$(PKGFILE)
 
-install-locales:
+install-data-local:
 
 

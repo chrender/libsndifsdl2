@@ -37,7 +37,7 @@ AC_ARG_ENABLE([tracing],
 
 m4_include(config-flags.m4)
 
-AC_INIT([libsndifsdl], [0.7.4])
+AC_INIT([libsndifsdl], [0.7.5])
 
 libsndif_reqs="sdl"
 PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.4])
