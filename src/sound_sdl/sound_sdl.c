@@ -832,14 +832,14 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
         }
       }
 
-      src_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
-      nof_repeats_from_file = (int)fsi->getchar(in);
+      src_len = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
+      nof_repeats_from_file = (int)fsi->readchar(in);
       TRACE_LOG("[sound]repeats to play from file: %d.\n",
           nof_repeats_from_file);
-      base_note = (int)fsi->getchar(in);
-      frequency = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
+      base_note = (int)fsi->readchar(in);
+      frequency = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
       fsi->setfilepos(in, 2, SEEK_CUR);
-      effect->data_len = ((int)fsi->getchar(in) << 8) | fsi->getchar(in);
+      effect->data_len = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
 
       effect->is_internal_effect = false;
       effect->format = AUDIO_U8;
@@ -848,7 +848,7 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
       effect->data = fizmo_malloc(effect->data_len);
 
       //delay = 0;
-      fsi->getchars(effect->data, effect->data_len, in);
+      fsi->readchars(effect->data, effect->data_len, in);
       fsi->closefile(in);
 
       if (repeats >= 1)

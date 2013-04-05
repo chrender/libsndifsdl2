@@ -40,7 +40,7 @@ m4_include(config-flags.m4)
 AC_INIT([libsndifsdl], [0.7.5])
 
 libsndif_reqs="sdl"
-PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.4])
+PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.7])
 m4_include(config-libs.m4)
 
 AC_CONFIG_AUX_DIR([.])
