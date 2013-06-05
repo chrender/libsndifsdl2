@@ -1,5 +1,6 @@
 
    Version 0.7.5
+ + 0.7.5 was finished at about Wed Jun 5 18:49:00 CEST 2013.
  - Renamed "install-locales" to "install-data" build target.
  - Adapted to new readchar function names in file system interface.
 
