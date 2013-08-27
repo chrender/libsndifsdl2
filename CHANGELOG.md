@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.7.6**
+
+ - Fixed “AC_CONFIG_AUX_DIR” invocation.
+
+---
+
+
    **Version 0.7.5 —  5, 2013**
 
  - Renamed “install-locales” to “install-data” build target.

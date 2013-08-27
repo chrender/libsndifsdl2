@@ -37,13 +37,13 @@ AC_ARG_ENABLE([tracing],
 
 m4_include(config-flags.m4)
 
-AC_INIT([libsndifsdl], [0.7.5])
+AC_INIT([libsndifsdl], [0.7.6])
+AC_CONFIG_AUX_DIR([.])
 
 libsndif_reqs="sdl"
 PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.7])
 m4_include(config-libs.m4)
 
-AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_PROG_RANLIB
