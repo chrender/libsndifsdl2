@@ -64,7 +64,7 @@
    **Version 0.6.0 —  25, 2009**
 
  - This marks the point for the first public beta release
- - Implemented new “*.snd” search method: Generalized for all files, not only Lurking Horror and Sherlock, tries upper- and lowercase.
+ - Implemented new “\*.snd” search method: Generalized for all files, not only Lurking Horror and Sherlock, tries upper- and lowercase.
 
 ---
 
