@@ -4,6 +4,8 @@
    **Version 0.7.6**
 
  - Fixed “AC_CONFIG_AUX_DIR” invocation.
+ - Added “clean-dev” build target for better cleanup of installed development files, which helps debian packaging.
+ - Fix compiler warnings.
 
 ---
 

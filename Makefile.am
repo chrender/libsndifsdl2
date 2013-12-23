@@ -69,3 +69,16 @@ install-dev:: libsndifsdl.a
 install-data-local:
 
 
+# About "-rmdir": make ignores errors of commands which are prefixed with
+# a - sign. rmdir may fail in clean-dev in case other libs have installed
+# development files.
+clean-dev::
+	rm "$(fizmo_build_prefix)/lib/fizmo/libsndifsdl.a"
+	-rmdir "$(fizmo_build_prefix)/lib/fizmo"
+	rm -rf "$(fizmo_build_prefix)/include/fizmo/sound_sdl"
+	-rmdir "$(fizmo_build_prefix)/include/fizmo"
+	-rmdir "$(fizmo_build_prefix)/include"
+	rm "$(PKGFILE)"
+	-rmdir "$(PKG_DIR)"
+	-rmdir "$(fizmo_build_prefix)/lib"
+

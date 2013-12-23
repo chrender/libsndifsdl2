@@ -623,7 +623,8 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
   //int delay;
   int nof_repeats_from_file;
   z_file *in;
-  int src_len, base_note, frequency;
+  // int src_len, base_note;   // Not used in the current code.
+  int frequency;
 #ifdef ENABLE_AIFF_FOR_SOUND_SDL
   SF_INFO sfinfo;
   SNDFILE *sndfile;
@@ -832,11 +833,21 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
         }
       }
 
-      src_len = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
+      // src_len = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
+      // Replaced by lower statement to avoid compiler warnings the
+      // "src_len" is not used.
+      fsi->readchar(in);
+      fsi->readchar(in);
+      // Finished reading src_len
+
       nof_repeats_from_file = (int)fsi->readchar(in);
       TRACE_LOG("[sound]repeats to play from file: %d.\n",
           nof_repeats_from_file);
-      base_note = (int)fsi->readchar(in);
+      // base_note = (int)fsi->readchar(in);  // Replaced by the lower simple
+      // "fsi->readchar(in)" to avoid compiler complaints.
+      fsi->readchar(in);
+      // Finished reading base_note
+
       frequency = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
       fsi->setfilepos(in, 2, SEEK_CUR);
       effect->data_len = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
