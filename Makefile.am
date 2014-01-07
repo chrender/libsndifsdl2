@@ -71,14 +71,14 @@ install-data-local:
 
 # About "-rmdir": make ignores errors of commands which are prefixed with
 # a - sign. rmdir may fail in clean-dev in case other libs have installed
-# development files.
+# development files, or in case clean-dev has been run before.
 clean-dev::
-	rm "$(fizmo_build_prefix)/lib/fizmo/libsndifsdl.a"
+	-rm "$(fizmo_build_prefix)/lib/fizmo/libsndifsdl.a"
 	-rmdir "$(fizmo_build_prefix)/lib/fizmo"
-	rm -rf "$(fizmo_build_prefix)/include/fizmo/sound_sdl"
+	-rm -rf "$(fizmo_build_prefix)/include/fizmo/sound_sdl"
 	-rmdir "$(fizmo_build_prefix)/include/fizmo"
 	-rmdir "$(fizmo_build_prefix)/include"
-	rm "$(PKGFILE)"
+	-rm "$(PKGFILE)"
 	-rmdir "$(PKG_DIR)"
 	-rmdir "$(fizmo_build_prefix)/lib"
 
