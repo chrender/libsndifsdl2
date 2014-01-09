@@ -4,6 +4,7 @@
     <logentry>Fixed “AC_CONFIG_AUX_DIR” invocation.</logentry>
     <logentry>Added “clean-dev” build target for better cleanup of installed development files, which helps debian packaging.</logentry>
     <logentry>Fix compiler warnings.</logentry>
+    <logentry>Added missing license/copyright information.</logentry>
   </change>
 
   <change version="0.7.5">
