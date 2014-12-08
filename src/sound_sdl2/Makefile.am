@@ -29,20 +29,20 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-AM_CFLAGS = $(libfizmo_CFLAGS) $(sdl_CFLAGS) $(sndfile_CFLAGS)
+AM_CFLAGS = $(libfizmo_CFLAGS) $(sdl2_CFLAGS) $(sndfile_CFLAGS)
 AM_CPPFLAGS =
-LDADD = $(libfizmo_LIBS) $(sdl_LIBS) $(sndfile_LIBS)
+LDADD = $(libfizmo_LIBS) $(sdl2_LIBS) $(sndfile_LIBS)
 
 localedir = $(datarootdir)/fizmo/locales
 
-noinst_LIBRARIES = libsndifsdl.a
-libsndifsdl_a_SOURCES = sound_sdl.c
+noinst_LIBRARIES = libsndifsdl2.a
+libsndifsdl2_a_SOURCES = sound_sdl2.c
 
 if ENABLE_TRACING
 AM_CFLAGS += -DENABLE_TRACING=
 endif
 
 if ENABLE_AIFF
-AM_CFLAGS += -DENABLE_AIFF_FOR_SOUND_SDL=
+AM_CFLAGS += -DENABLE_AIFF_FOR_SOUND_SDL2=
 endif
 

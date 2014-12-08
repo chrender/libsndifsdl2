@@ -1,5 +1,5 @@
 
-/* sound_sdl.h
+/* sound_sdl2.h
  *
  * This file is part of fizmo.
  *
@@ -30,12 +30,12 @@
  */
 
 
-#ifndef sound_sdl_h_INCLUDED
-#define sound_sdl_h_INCLUDED
+#ifndef sound_sdl2_h_INCLUDED
+#define sound_sdl2_h_INCLUDED
 
-#ifndef sound_sdl_c_INCLUDED
-extern struct z_sound_interface sound_interface_sdl;
-#endif /* sound_sdl_c_INCLUDED */
+#ifndef sound_sdl2_c_INCLUDED
+extern struct z_sound_interface sound_interface_sdl2;
+#endif /* sound_sdl2_c_INCLUDED */
 
-#endif /* sound_sdl_h_INCLUDED */
+#endif /* sound_sdl2_h_INCLUDED */
 

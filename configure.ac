@@ -37,10 +37,10 @@ AC_ARG_ENABLE([tracing],
 
 m4_include(config-flags.m4)
 
-AC_INIT([libsndifsdl], [0.7.6])
+AC_INIT([libsndifsdl2], [0.8.0])
 AC_CONFIG_AUX_DIR([.])
 
-libsndif_reqs="sdl"
+libsndif_reqs="sdl2"
 PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.7])
 m4_include(config-libs.m4)
 
@@ -50,13 +50,13 @@ AC_PROG_RANLIB
 AM_PROG_AR
 
 AC_SUBST([DEV_BUILD_PREFIX], "$DESTDIR$prefix")
-AC_SUBST([LIBSNDIFSDL_REQS], $libsndif_reqs)
+AC_SUBST([LIBSNDIFSDL2_REQS], $libsndif_reqs)
 
 AM_CONDITIONAL([ENABLE_TRACING],
                 [test "$enable_tracing" = "yes"])
 
 m4_include(config-conds.m4)
 
-AC_CONFIG_FILES([Makefile src/sound_sdl/Makefile])
+AC_CONFIG_FILES([Makefile src/sound_sdl2/Makefile])
 AC_OUTPUT
 

@@ -1,5 +1,5 @@
 
-/* sound_sdl.c
+/* sound_sdl2.c
  *
  * This file is part of fizmo.
  *
@@ -33,8 +33,8 @@
 #define _POSIX_C_SOURCE 1
 #define _XOPEN_SOURCE 1
 
-#ifndef sound_sdl_c_INCLUDED
-#define sound_sdl_c_INCLUDED
+#ifndef sound_sdl2_c_INCLUDED
+#define sound_sdl2_c_INCLUDED
 
 
 #include <unistd.h>
@@ -60,7 +60,7 @@
 #include "interpreter/fizmo.h"
 #include "interpreter/streams.h"
 #include "interpreter/blorb.h"
-#include "sound_sdl.h"
+#include "sound_sdl2.h"
 
 // Including timezone on linux doesn't work?
 /*
@@ -78,8 +78,8 @@
 #define TONE_330_HZ_SAMPLE_SIZE 800
 #define TONE_330_HZ_REPEATS 6
 
-static char *sdl_interface_name = "libsdlsound";
-static char *sdl_interface_version = "0.7.6";
+static char *sdl2_interface_name = "libsdl2sound";
+static char *sdl2_interface_version = "0.8.0";
 
 struct sound_effect
 {
@@ -132,7 +132,7 @@ static bool flush_sound_effect_stack = false;
 static bool force_8bit_sound = false;
 static char *config_option_names[] = { "force-8bit-sound", NULL } ;
 
-static SDL_TimerID sdl_finish_timer = NULL;
+static SDL_TimerID sdl_finish_timer = -1;
 
 
 Uint8 tone880hz[] = {
@@ -261,7 +261,7 @@ static void clear_current_effect_from_stack()
   TRACE_LOG("\n\n[sound]Clearing current effect from stack.\n\n");
 
   timer_to_terminate = sdl_finish_timer;
-  if (timer_to_terminate != NULL)
+  if (timer_to_terminate != -1)
   {
     SDL_RemoveTimer(timer_to_terminate);
   }
@@ -283,7 +283,7 @@ static Uint32 sdl_effect_finished(Uint32 UNUSED(interval), void* UNUSED(param))
   TRACE_LOG("\n\n[sound]effect finished on timer.\n\n");
 
   SDL_mutexP(sound_output_active_mutex);
-  sdl_finish_timer = NULL;
+  sdl_finish_timer = -1;
 
   TRACE_LOG("\n\n[sound]effect finished(%d).\n\n", sound_effect_top_element);
   SDL_PauseAudio(1);
@@ -359,7 +359,7 @@ void mixaudio(void *UNUSED(unused), Uint8 *stream, int len)
         {
           SDL_mutexP(sound_output_active_mutex);
 
-          if (sdl_finish_timer == NULL)
+          if (sdl_finish_timer == -1)
           {
             // Wait to complete a full cycle.
             interval
@@ -390,13 +390,13 @@ void mixaudio(void *UNUSED(unused), Uint8 *stream, int len)
 }
 
 
-void sdl_init_sound()
+void sdl2_init_sound()
 {
   int len;
   char *slashpos, *dotpos;
   int i;
 
-  TRACE_LOG("[sound]sdl_init_sound() called.\n");
+  TRACE_LOG("[sound]sdl2_init_sound() called.\n");
 
   if (sound_init_performed == true)
     return;
@@ -452,11 +452,11 @@ void sdl_init_sound()
 }
 
 
-void sdl_close_sound()
+void sdl2_close_sound()
 {
   int thread_status;
 
-  TRACE_LOG("sdl_close_sound invoked.\n");
+  TRACE_LOG("sdl2_close_sound invoked.\n");
 
   if (sound_init_performed == false)
   {
@@ -489,7 +489,7 @@ void sdl_close_sound()
 }
 
 
-void sdl_prepare_sound(int UNUSED(sound_nr), int UNUSED(volume),
+void sdl2_prepare_sound(int UNUSED(sound_nr), int UNUSED(volume),
     int UNUSED(repeats))
 {
   if (sound_init_performed == false)
@@ -617,7 +617,7 @@ int effect_thread_routine(void* UNUSED(parameter))
 }
 
 
-void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
+void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
 {
   struct sound_effect *effect;
   //int delay;
@@ -924,7 +924,7 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
     if (effect_thread == NULL)
     {
       TRACE_LOG("[sound]Creating new effect_thread.\n");
-      effect_thread = SDL_CreateThread(&effect_thread_routine, NULL);
+      effect_thread = SDL_CreateThread(&effect_thread_routine, "fizmo-libsndifsdl2", NULL);
     }
     start_next_effect();
     SDL_mutexV(sound_output_active_mutex);
@@ -947,7 +947,7 @@ void sdl_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
 }
 
 
-void sdl_stop_sound(int UNUSED(sound_nr))
+void sdl2_stop_sound(int UNUSED(sound_nr))
 {
   SDL_TimerID timer_to_terminate;
 
@@ -956,7 +956,7 @@ void sdl_stop_sound(int UNUSED(sound_nr))
 
   SDL_mutexP(sound_output_active_mutex);
   timer_to_terminate = sdl_finish_timer;
-  if (timer_to_terminate != NULL)
+  if (timer_to_terminate != -1)
   {
     SDL_RemoveTimer(timer_to_terminate);
   }
@@ -982,7 +982,7 @@ void sdl_stop_sound(int UNUSED(sound_nr))
 }
 
 
-void sdl_finish_sound(int UNUSED(sound_nr))
+void sdl2_finish_sound(int UNUSED(sound_nr))
 {
   /*
   if (sound_init_performed == false)
@@ -991,7 +991,7 @@ void sdl_finish_sound(int UNUSED(sound_nr))
 }
 
 
-void sdl_keyboard_input_has_occurred()
+void sdl2_keyboard_input_has_occurred()
 {
   SDL_mutexP(sound_output_active_mutex);
   read_has_occurred = true;
@@ -999,7 +999,7 @@ void sdl_keyboard_input_has_occurred()
 }
 
 
-uint16_t sdl_get_next_sound_end_routine()
+uint16_t sdl2_get_next_sound_end_routine()
 {
   uint16_t result;
 
@@ -1019,19 +1019,19 @@ uint16_t sdl_get_next_sound_end_routine()
 }
 
 
-static char *get_sdl_interface_name()
+static char *get_sdl2_interface_name()
 {
-  return sdl_interface_name;
+  return sdl2_interface_name;
 }
 
 
-static char *get_sdl_interface_version()
+static char *get_sdl2_interface_version()
 {
-  return sdl_interface_version;
+  return sdl2_interface_version;
 }
 
 
-static int sdl_parse_config_parameter(char *key, char *value)
+static int sdl2_parse_config_parameter(char *key, char *value)
 {
   if (strcasecmp(key, "force-8bit-sound") == 0)
   {
@@ -1055,7 +1055,7 @@ static int sdl_parse_config_parameter(char *key, char *value)
 }
 
 
-static char *sdl_get_config_value(char *key)
+static char *sdl2_get_config_value(char *key)
 {
   if (strcasecmp(key, "force-8bit-sound") == 0)
   {
@@ -1070,31 +1070,31 @@ static char *sdl_get_config_value(char *key)
 }
 
 
-static char **sdl_get_config_option_names()
+static char **sdl2_get_config_option_names()
 {
   return config_option_names;
 }
 
 
-struct z_sound_interface sound_interface_sdl =
+struct z_sound_interface sound_interface_sdl2 =
 {
-  &sdl_init_sound,
-  &sdl_close_sound,
-  &sdl_prepare_sound,
-  &sdl_play_sound,
-  &sdl_stop_sound,
-  &sdl_finish_sound,
-  &sdl_keyboard_input_has_occurred,
-  &sdl_get_next_sound_end_routine,
-  &get_sdl_interface_name,
-  &get_sdl_interface_version,
-  &sdl_parse_config_parameter,
-  &sdl_get_config_value,
-  &sdl_get_config_option_names
+  &sdl2_init_sound,
+  &sdl2_close_sound,
+  &sdl2_prepare_sound,
+  &sdl2_play_sound,
+  &sdl2_stop_sound,
+  &sdl2_finish_sound,
+  &sdl2_keyboard_input_has_occurred,
+  &sdl2_get_next_sound_end_routine,
+  &get_sdl2_interface_name,
+  &get_sdl2_interface_version,
+  &sdl2_parse_config_parameter,
+  &sdl2_get_config_value,
+  &sdl2_get_config_option_names
 };
 
-//sound_interface_sdl = &sound_interface_sdl_struct;
-//struct z_sound_interface *sound_interface_sdl = &sound_interface_sdl_struct;
+//sound_interface_sdl2 = &sound_interface_sdl2_struct;
+//struct z_sound_interface *sound_interface_sdl2 = &sound_interface_sdl2_struct;
 
-#endif /* sound_sdl_c_INCLUDED */
+#endif /* sound_sdl2_c_INCLUDED */
 

@@ -36,34 +36,34 @@ localedir = $(datarootdir)/fizmo/locales
 fizmo_build_prefix=$(DEV_BUILD_PREFIX)
 
 PKG_DIR = $(fizmo_build_prefix)/lib/pkgconfig
-PKGFILE = $(PKG_DIR)/libsndifsdl.pc
+PKGFILE = $(PKG_DIR)/libsndifsdl2.pc
 
-SUBDIRS = src/sound_sdl .
-noinst_LIBRARIES = libsndifsdl.a
+SUBDIRS = src/sound_sdl2 .
+noinst_LIBRARIES = libsndifsdl2.a
 
-libsndifsdl.a::
-	cd src/sound_sdl ; make
-	mv src/sound_sdl/libsndifsdl.a .
+libsndifsdl2.a::
+	cd src/sound_sdl2 ; make
+	mv src/sound_sdl2/libsndifsdl2.a .
 
-install-dev:: libsndifsdl.a
+install-dev:: libsndifsdl2.a
 	mkdir -p $(fizmo_build_prefix)/lib/fizmo
-	cp libsndifsdl.a $(fizmo_build_prefix)/lib/fizmo
-	mkdir -p $(fizmo_build_prefix)/include/fizmo/sound_sdl
-	cp src/sound_sdl/sound_sdl.h \
-	  $(fizmo_build_prefix)/include/fizmo/sound_sdl
+	cp libsndifsdl2.a $(fizmo_build_prefix)/lib/fizmo
+	mkdir -p $(fizmo_build_prefix)/include/fizmo/sound_sdl2
+	cp src/sound_sdl2/sound_sdl2.h \
+	  $(fizmo_build_prefix)/include/fizmo/sound_sdl2
 	mkdir -p $(PKG_DIR)
 	echo 'prefix=$(fizmo_build_prefix)' >$(PKGFILE)
 	echo 'exec_prefix=$${prefix}' >>$(PKGFILE)
 	echo 'libdir=$${exec_prefix}/lib/fizmo' >>$(PKGFILE)
 	echo 'includedir=$${prefix}/include/fizmo' >>$(PKGFILE)
 	echo >>$(PKGFILE)
-	echo 'Name: libsndifsdl' >>$(PKGFILE)
-	echo 'Description: libsndifsdl' >>$(PKGFILE)
-	echo 'Version: 0.7.6' >>$(PKGFILE)
-	echo 'Requires: libfizmo >= 0.7.7, $(LIBSNDIFSDL_REQS)' >>$(PKGFILE)
+	echo 'Name: libsndifsdl2' >>$(PKGFILE)
+	echo 'Description: libsndifsdl2' >>$(PKGFILE)
+	echo 'Version: 0.8.0' >>$(PKGFILE)
+	echo 'Requires: libfizmo >= 0.7.7, $(LIBSNDIFSDL2_REQS)' >>$(PKGFILE)
 	echo 'Requires.private:' >>$(PKGFILE)
-	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(SOUNDSDL_NONPKG_CFLAGS)' >>$(PKGFILE)
-	echo 'Libs: -L$(fizmo_build_prefix)/lib/fizmo -lsndifsdl $(SOUNDSDL_PKG_LIBS)'  >>$(PKGFILE)
+	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(SOUNDSDL2_NONPKG_CFLAGS)' >>$(PKGFILE)
+	echo 'Libs: -L$(fizmo_build_prefix)/lib/fizmo -lsndifsdl2 $(SOUNDSDL2_PKG_LIBS)'  >>$(PKGFILE)
 	echo >>$(PKGFILE)
 
 install-data-local:
@@ -73,9 +73,9 @@ install-data-local:
 # a - sign. rmdir may fail in clean-dev in case other libs have installed
 # development files, or in case clean-dev has been run before.
 clean-dev::
-	-rm "$(fizmo_build_prefix)/lib/fizmo/libsndifsdl.a"
+	-rm "$(fizmo_build_prefix)/lib/fizmo/libsndifsdl2.a"
 	-rmdir "$(fizmo_build_prefix)/lib/fizmo"
-	-rm -rf "$(fizmo_build_prefix)/include/fizmo/sound_sdl"
+	-rm -rf "$(fizmo_build_prefix)/include/fizmo/sound_sdl2"
 	-rmdir "$(fizmo_build_prefix)/include/fizmo"
 	-rmdir "$(fizmo_build_prefix)/include"
 	-rm "$(PKGFILE)"

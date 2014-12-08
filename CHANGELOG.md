@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.8.0**
+
+ - Implemented SDL2-compatible sound interface, forked from libsoundofsdl.
+
+---
+
+
    **Version 0.7.6 — March 19, 2014**
 
  - Fixed “AC_CONFIG_AUX_DIR” invocation.
