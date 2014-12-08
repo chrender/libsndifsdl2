@@ -47,9 +47,9 @@
 #include <SDL_audio.h>
 #include <SDL_thread.h>
 
-#ifdef ENABLE_AIFF_FOR_SOUND_SDL2
+#ifdef ENABLE_AIFF_FOR_SOUND_SDL
 #include "sndfile.h"
-#endif // ENABLE_AIFF_FOR_SOUND_SDL2
+#endif // ENABLE_AIFF_FOR_SOUND_SDL
 
 #include "sound_interface/sound_interface.h"
 #include "tools/tracelog.h"
@@ -62,24 +62,32 @@
 #include "interpreter/blorb.h"
 #include "sound_sdl2.h"
 
+// Including timezone on linux doesn't work?
+/*
+#ifdef ENABLE_TRACING
+#include <time.h>
+#include <sys/time.h>
+#endif
+*/
+
+//#define TONE_880_HZ_CYCLE_DURATION 250
 #define TONE_880_HZ_SAMPLE_SIZE 400
 #define TONE_880_HZ_REPEATS 8
 
+//#define TONE_330_HZ_CYCLE_DURATION 250
 #define TONE_330_HZ_SAMPLE_SIZE 800
 #define TONE_330_HZ_REPEATS 6
-
-#define AIFF_INPUT_BUFFER_SIZE 4096
-#define SND_INPUT_BUFFER_SIZE 4096
-
 
 static char *sdl2_interface_name = "libsdl2sound";
 static char *sdl2_interface_version = "0.8.0";
 
-struct sound_effect {
+struct sound_effect
+{
   Uint8 *data;
-  int nof_frames;
+  int data_len;
   bool is_internal_effect;
   int nof_channels;
+  int format;
   int freq;
   int nof_repeats;
   int sound_volume;
@@ -94,6 +102,7 @@ static struct sound_effect **sdl_sound_effect_fifo = NULL;
 static int sound_effect_top_element = -1;
 static int sound_effect_fifo_size = 0;
 static struct sound_effect *current_effect;
+//SDL_mutex *effect_stack_mutex;
 
 static bool is_audio_open = false;
 static bool sound_output_active = false;
@@ -108,20 +117,22 @@ static char *sdl_file_prefix = NULL;
 static char *sdl_file_prefix_lower = NULL;
 static char *sdl_file_prefix_upper = NULL;
 static char *sdl_directory_name = NULL;
-static long current_data_index;
+//long current_sample_size;
+static long current_sample_index;
+//Uint8 *sample_data;
+//Uint8 *sample_buffer = NULL;
+//Uint32 sample_buffer_size = 0;
 static char *sdl_snd_filename;
+//int number_of_repeats;
 static bool read_has_occurred = true;
+//static bool stop_current_sound = false;
 static bool flush_sound_effect_stack = false;
+//Mix_Chunk *sound_effect_chunk = NULL;
+//uint16_t routine_after_playback = 0;
+static bool force_8bit_sound = false;
+static char *config_option_names[] = { "force-8bit-sound", NULL } ;
 
-static SDL_AudioDeviceID sdl_audio_device_id = -1;
 static SDL_TimerID sdl_finish_timer = -1;
-static SDL_AudioSpec current_audio_spec;
-
-static Uint8 *tone880hz_buf = NULL;
-static Uint8 *tone330hz_buf = NULL;
-
-static int aiff_input_buffer[AIFF_INPUT_BUFFER_SIZE];
-static Uint8 snd_input_buffer[SND_INPUT_BUFFER_SIZE];
 
 
 Uint8 tone880hz[] = {
@@ -230,7 +241,9 @@ Uint8 tone330hz[] = {
   0x12, 0x27, 0x40, 0x5f, 0x80, 0xa1, 0xbf, 0xda };
 
 
-static void clear_all_effects_from_stack() {
+
+static void clear_all_effects_from_stack()
+{
   int i;
 
   for (i=sound_effect_top_element; i>=0; i--)
@@ -241,13 +254,16 @@ static void clear_all_effects_from_stack() {
 }
 
 
-static void clear_current_effect_from_stack() {
+static void clear_current_effect_from_stack()
+{
   SDL_TimerID timer_to_terminate;
 
   TRACE_LOG("\n\n[sound]Clearing current effect from stack.\n\n");
 
-  if (sdl_finish_timer != -1) {
-    SDL_RemoveTimer(sdl_finish_timer);
+  timer_to_terminate = sdl_finish_timer;
+  if (timer_to_terminate != -1)
+  {
+    SDL_RemoveTimer(timer_to_terminate);
   }
 
   if (current_effect->is_internal_effect == false)
@@ -262,19 +278,21 @@ static void clear_current_effect_from_stack() {
 }
 
 
-static Uint32 sdl_effect_finished(Uint32 UNUSED(interval),
-    void* UNUSED(param)) {
+static Uint32 sdl_effect_finished(Uint32 UNUSED(interval), void* UNUSED(param))
+{
   TRACE_LOG("\n\n[sound]effect finished on timer.\n\n");
 
   SDL_mutexP(sound_output_active_mutex);
   sdl_finish_timer = -1;
 
   TRACE_LOG("\n\n[sound]effect finished(%d).\n\n", sound_effect_top_element);
-  SDL_PauseAudioDevice(sdl_audio_device_id, 1);
+  SDL_PauseAudio(1);
 
-  if (current_effect->routine_after_playback != 0) {
+  if (current_effect->routine_after_playback != 0)
+  {
     routine_stack_top_element++;
-    if (routine_stack_top_element == routine_stack_size) {
+    if (routine_stack_top_element == routine_stack_size)
+    {
       routine_stack_size += 4;
       routine_stack = (uint16_t*)fizmo_realloc(
           routine_stack, routine_stack_size * sizeof(uint16_t));
@@ -304,62 +322,53 @@ static Uint32 sdl_effect_finished(Uint32 UNUSED(interval),
 }
 
 
-void mixaudio(void *UNUSED(unused), Uint8 *stream, int len) {
+void mixaudio(void *UNUSED(unused), Uint8 *stream, int len)
+{
   Uint32 interval;
-  int size_to_process, remaining_size;
-  Uint8 *dest_index;
+  int size;
 
   TRACE_LOG("\n\n[sound]mixaudio call.\n\n");
-  SDL_memset(stream, 0, len);
 
-  while ( (current_effect->nof_repeats != 0) && (len > 0) ) {
-    remaining_size
-      = current_effect->nof_frames * sizeof(int) * current_effect->nof_channels
-      - current_data_index;
+  while ( (current_effect->nof_repeats != 0) && (len > 0) )
+  {
+    size = current_effect->data_len - current_sample_index;
 
-    size_to_process
-      = len < remaining_size
-      ? len
-      : remaining_size;
+    TRACE_LOG("\n\n[sound]repeats: %d, len:%d, size:%d.\n\n",
+        current_effect->nof_repeats, len, size);
 
-    TRACE_LOG("\n\n[sound]repeats: %d, len:%d, size_to_process:%d, vol:%d.\n\n",
-        current_effect->nof_repeats,
-        len,
-        size_to_process,
-        current_effect->sound_volume);
+    if (len < size)
+      size = len;
 
-    TRACE_LOG("\n\n[sound]Streaming %d bytes for buffer len %d.\n\n",
-        size_to_process,
-        len);
-
-    SDL_MixAudioFormat(
+    SDL_MixAudio(
         stream,
-        current_effect->data + current_data_index,
-        current_audio_spec.format,
-        size_to_process,
+        current_effect->data + current_sample_index,
+        size,
         current_effect->sound_volume);
 
-    stream += size_to_process;
-    current_data_index += size_to_process;
-    len -= size_to_process;
-    remaining_size -= size_to_process;
+    stream += size;
+    len -= size;
+    current_sample_index += size;
 
-    if (remaining_size == 0) {
-      current_data_index = 0;
+    if (current_sample_index == current_effect->data_len)
+    {
+      current_sample_index = 0;
 
-      if (current_effect->nof_repeats >= 0) {
-        if (flush_sound_effect_stack == true) {
+      if (current_effect->nof_repeats >= 0)
+      {
+        if (flush_sound_effect_stack == true)
+        {
           SDL_mutexP(sound_output_active_mutex);
 
-          if (sdl_finish_timer == -1) {
+          if (sdl_finish_timer == -1)
+          {
             // Wait to complete a full cycle.
             interval
-              = ((double)size_to_process / (double)current_effect->freq)
+              = ((double)size / (double)current_effect->freq)
               * 1000
               + 1000; //timing-safety
               // + 100; //timing-safety
             TRACE_LOG("\n\n[sound]interval(%d/%d):%u ms\n",
-                size_to_process, current_effect->freq, interval);
+                size, current_effect->freq, interval);
             sdl_finish_timer = SDL_AddTimer(
                 interval, &sdl_effect_finished, NULL);
           }
@@ -368,7 +377,8 @@ void mixaudio(void *UNUSED(unused), Uint8 *stream, int len) {
 
         current_effect->nof_repeats--;
 
-        if (current_effect->nof_repeats == 0) {
+        if (current_effect->nof_repeats == 0)
+        {
           len = 0;
           break;
         }
@@ -380,7 +390,8 @@ void mixaudio(void *UNUSED(unused), Uint8 *stream, int len) {
 }
 
 
-void sdl2_init_sound() {
+void sdl2_init_sound()
+{
   int len;
   char *slashpos, *dotpos;
   int i;
@@ -392,7 +403,8 @@ void sdl2_init_sound() {
 
   TRACE_LOG("[sound]Initializing sound.n");
 
-  if ((slashpos = strrchr(active_z_story->absolute_file_name, '/')) != NULL) {
+  if ((slashpos = strrchr(active_z_story->absolute_file_name, '/')) != NULL)
+  {
     len = slashpos - active_z_story->absolute_file_name;
     sdl_directory_name = (char*)fizmo_malloc(len + 1);
     memcpy(sdl_directory_name, active_z_story->absolute_file_name, len);
@@ -411,7 +423,8 @@ void sdl2_init_sound() {
     sdl_file_prefix_upper = (char*)fizmo_malloc(len + 1);
 
     memcpy(sdl_file_prefix, slashpos + 1, len);
-    for (i=0; i<len; i++) {
+    for (i=0; i<len; i++)
+    {
       sdl_file_prefix_lower[i] = (char)tolower(sdl_file_prefix[i]);
       sdl_file_prefix_upper[i] = (char)toupper(sdl_file_prefix[i]);
     }
@@ -423,17 +436,15 @@ void sdl2_init_sound() {
     sdl_snd_filename
       = (char*)fizmo_malloc(strlen(sdl_directory_name) + len + 7);
   }
-  else {
+  else
+  {
     sdl_directory_name = NULL;
     sdl_file_prefix = NULL;
   }
 
   TRACE_LOG("[sound]Invoking SDL_Init.\n");
 
-  SDL_Init(0);
-  if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
-    SDL_InitSubSystem(SDL_INIT_AUDIO);
-  }
+  SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO);
 
   sound_output_active_mutex = SDL_CreateMutex();
 
@@ -441,12 +452,14 @@ void sdl2_init_sound() {
 }
 
 
-void sdl2_close_sound() {
+void sdl2_close_sound()
+{
   int thread_status;
 
   TRACE_LOG("sdl2_close_sound invoked.\n");
 
-  if (sound_init_performed == false) {
+  if (sound_init_performed == false)
+  {
     TRACE_LOG("No init performed, returning.\n");
     return;
   }
@@ -458,8 +471,8 @@ void sdl2_close_sound() {
 
   TRACE_LOG("Pausing and closing audio.\n");
 
-  SDL_PauseAudioDevice(sdl_audio_device_id, 1);
-  SDL_CloseAudioDevice(sdl_audio_device_id);
+  SDL_PauseAudio(1);
+  SDL_CloseAudio();
   errno = 0;
   sound_output_active = false;
   
@@ -469,16 +482,6 @@ void sdl2_close_sound() {
   sdl_sound_effect_fifo = NULL;
   sound_effect_fifo_size = 0;
 
-  if (tone880hz_buf != NULL) {
-    free(tone880hz_buf);
-    tone880hz_buf = NULL;
-  }
-
-  if (tone330hz_buf != NULL) {
-    free(tone330hz_buf);
-    tone330hz_buf = NULL;
-  }
-
   sound_init_performed = false;
   SDL_mutexV(sound_output_active_mutex);
   SDL_DestroyMutex(sound_output_active_mutex);
@@ -487,98 +490,125 @@ void sdl2_close_sound() {
 
 
 void sdl2_prepare_sound(int UNUSED(sound_nr), int UNUSED(volume),
-    int UNUSED(repeats)) {
+    int UNUSED(repeats))
+{
+  if (sound_init_performed == false)
+    return;
 }
 
 
 // This method has to be called with locked semaphore.
-static void start_next_effect() {
-  SDL_AudioSpec fmt_want;
+static void start_next_effect()
+{
+  SDL_AudioSpec fmt;
   Uint32 interval;
 
-  SDL_PauseAudioDevice(sdl_audio_device_id, 1);
+  SDL_PauseAudio(1);
 
-  if (is_audio_open == true) {
-    SDL_CloseAudioDevice(sdl_audio_device_id);
+  if (is_audio_open == true)
+  {
+    SDL_CloseAudio();
     errno = 0;
     is_audio_open = false;
   }
 
-  if (sound_effect_top_element < 0) {
+  if (sound_effect_top_element < 0)
     return;
-  }
-  else if (sound_effect_top_element == 0) {
+  else if (sound_effect_top_element == 0)
+  {
     flush_sound_effect_stack = false;
     read_has_occurred = false;
   }
 
-  current_data_index = 0;
+  current_sample_index = 0;
   current_effect = *sdl_sound_effect_fifo;
 
   TRACE_LOG("\n\n[sound]new effect loaded (%d).\n", sound_effect_top_element);
 
-  fmt_want.format = AUDIO_S32MSB;
-  fmt_want.samples = 16384;
-  fmt_want.callback = &mixaudio;
-  fmt_want.userdata = NULL;
-  fmt_want.freq = current_effect->freq;
-  fmt_want.channels = current_effect->nof_channels;
+  fmt.format = current_effect->format;
+  fmt.samples = 8192;
+  fmt.callback = &mixaudio;
+  fmt.userdata = NULL;
+  fmt.freq = current_effect->freq;
+  fmt.channels = current_effect->nof_channels;
 
-  TRACE_LOG("[sound]New effect, freq: %d.\n",
-         current_effect->freq);
+  TRACE_LOG("[sound]New effect, freq: %d.\n", current_effect->freq);
 
   TRACE_LOG("[sound]errno:%d\n", errno);
-  if ( (sdl_audio_device_id = SDL_OpenAudioDevice(
-          NULL,
-          0,
-          &fmt_want,
-          &current_audio_spec,
-          0) ) == 0) {
+  if (SDL_OpenAudio(&fmt, NULL) < 0 )
+  {
     TRACE_LOG("[sound]Unable to open audio: %s\n", SDL_GetError());
     return;
   }
-  TRACE_LOG("[sound]got: freq %d, format %d, errno was :%d\n",
-      current_audio_spec.freq,
-      current_audio_spec.format,
-      errno);
+  TRACE_LOG("[sound]errno:%d\n", errno);
   errno = 0;
   is_audio_open = true;
 
   //routine_after_playback = routine;
   sound_output_active = true;
 
-  if (current_effect->nof_repeats > 0) {
+  if (current_effect->nof_repeats > 0)
+  {
     interval
-      = ((double)current_effect->nof_frames / (double)current_effect->freq)
+      = ((double)current_effect->data_len / (double)current_effect->freq)
       * current_effect->nof_repeats
     * 1000
     + 100; //timing-safety
     TRACE_LOG("\n\n[sound]interval(%d/%d):%u ms\n",
-        current_effect->nof_frames , current_effect->freq, interval);
+        current_effect->data_len, current_effect->freq, interval);
     sdl_finish_timer = SDL_AddTimer(interval, &sdl_effect_finished, NULL);
   }
-  SDL_PauseAudioDevice(sdl_audio_device_id, 0);
+  SDL_PauseAudio(0);
 }
 
 
-int effect_thread_routine(void* UNUSED(parameter)) {
-  for (;;) {
+int effect_thread_routine(void* UNUSED(parameter))
+{
+  /*
+#ifdef ENABLE_TRACING
+  time_t rawtime;
+  struct timeval tv;
+  struct timezone tz;
+  struct tm *tm;
+#endif
+  */
+
+  for (;;)
+  {
+    /*
+#ifdef ENABLE_TRACING
+    time ( &rawtime );
+    gettimeofday(&tv, &tz);
+    tm=localtime(&tv.tv_sec);
+
+    TRACE_LOG(
+        "\n\n[sound](%s,%ld)effect_thread_routine run (%d:%02d:%02d %d)\n\n",
+        ctime (&rawtime), rawtime, tm->tm_hour, tm->tm_min,
+        tm->tm_sec, tv.tv_usec);
+#endif
+    */
+
     SDL_Delay(25);
 
     SDL_mutexP(sound_output_active_mutex);
 
-    if ( (stop_effect_thread == true)
-        || ( (sound_output_active == false) && (sound_effect_top_element < 0) )
-       ) {
+    if (
+        (stop_effect_thread == true)
+        ||
+        ( (sound_output_active == false) && (sound_effect_top_element < 0) )
+       )
+    {
       effect_thread = NULL;
       SDL_mutexV(sound_output_active_mutex);
       TRACE_LOG("\n\n[sound]effect_thread_routine quit.\n\n");
       return 0;
     }
 
-    if (sound_output_active == false) {
+    if (sound_output_active == false)
+    {
       // In case the sound has stopped playing, start the next one (if
       // there's at least one left on the stack) or quit this thread.
+
       start_next_effect();
     }
 
@@ -587,71 +617,69 @@ int effect_thread_routine(void* UNUSED(parameter)) {
 }
 
 
-void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
+void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine)
+{
   struct sound_effect *effect;
+  //int delay;
   int nof_repeats_from_file;
   z_file *in;
+  // int src_len, base_note;   // Not used in the current code.
   int frequency;
-  int frames_remaining, frames_to_read;
-#ifdef ENABLE_AIFF_FOR_SOUND_SDL2
+#ifdef ENABLE_AIFF_FOR_SOUND_SDL
   SF_INFO sfinfo;
   SNDFILE *sndfile;
-  int len;
+  int index, len;
   int i;
+  bool use_8bit_sound;
+  //struct z_story_blorb_sound *sound_blorb_index;
   long sound_blorb_index;
   int fd;
-  Uint8 *data_ptr;
+  short shortbuf[256];
   int v3_sound_loops;
-  int input_ptr, input_data;
-  Uint8 input_byte;
-#endif // ENABLE_AIFF_FOR_SOUND_SDL2
+#endif // ENABLE_AIFF_FOR_SOUND_SDL
+  /*
+#ifdef ENABLE_TRACING
+  time_t rawtime;
+  struct timeval tv;
+  struct timezone tz;
+  struct tm *tm;
+#endif
+  */
 
-  if (sound_init_performed == false) {
+  if (sound_init_performed == false)
     return;
-  }
 
   effect = (struct sound_effect*)fizmo_malloc(sizeof(struct sound_effect));
 
-  if (sound_nr <= 2) {
+  if (sound_nr <= 2)
+  {
     effect->is_internal_effect = true;
+    effect->format = AUDIO_U8;
     effect->nof_channels = 1;
     effect->freq = 8000;
 
-    if (sound_nr == 1) {
-      if (tone880hz_buf == NULL) {
-        tone880hz_buf = fizmo_malloc(TONE_880_HZ_SAMPLE_SIZE * sizeof(int));
-        data_ptr = tone880hz_buf;
-        for (i=0; i<TONE_880_HZ_SAMPLE_SIZE; i++) {
-          *(tone880hz_buf++) = tone880hz[i];
-          for (i=0; i<sizeof(int)-1; i++) {
-            *(tone880hz_buf++) = 0;
-          }
-        }
-      }
-      effect->data = tone880hz_buf;
-      effect->nof_frames = TONE_880_HZ_SAMPLE_SIZE;
+    if (sound_nr == 1)
+    {
+      effect->data = tone880hz;
+      effect->data_len = TONE_880_HZ_SAMPLE_SIZE;
+      //delay = TONE_880_HZ_CYCLE_DURATION;
       effect->nof_repeats = TONE_880_HZ_REPEATS;
     }
-    else if (sound_nr == 2) {
-      if (tone330hz_buf == NULL) {
-        tone330hz_buf = fizmo_malloc(TONE_330_HZ_SAMPLE_SIZE * sizeof(int));
-        data_ptr = tone330hz_buf;
-        *(tone330hz_buf++) = tone330hz[i];
-        for (i=0; i<sizeof(int)-1; i++) {
-          *(tone330hz_buf++) = 0;
-        }
-      }
-      effect->data = tone330hz_buf;
-      effect->nof_frames = TONE_330_HZ_SAMPLE_SIZE;
+    else if (sound_nr == 2)
+    {
+      effect->data = tone330hz;
+      effect->data_len = TONE_330_HZ_SAMPLE_SIZE;
+      //delay = TONE_330_HZ_CYCLE_DURATION;
       effect->nof_repeats = TONE_330_HZ_REPEATS;
     }
   }
-  else {
-#ifdef ENABLE_AIFF_FOR_SOUND_SDL2
+  else
+  {
+#ifdef ENABLE_AIFF_FOR_SOUND_SDL
     TRACE_LOG("Trying to find blorb sound number %d.\n", sound_nr);
     if ((sound_blorb_index = active_blorb_interface->get_blorb_offset(
-            active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1) {
-      TRACE_LOG("fd: %d.\n", fd);
+            active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1)
+    {
       fd = fsi->get_fileno(active_z_story->blorb_file);
       TRACE_LOG("Seeking pos %x\n", sound_blorb_index-8);
       lseek(fd, sound_blorb_index-8, SEEK_SET);
@@ -662,23 +690,53 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
               fd,
               SFM_READ,
               &sfinfo,
-              SF_FALSE)) != NULL) {
+              SF_FALSE)) != NULL)
+      {
         TRACE_LOG("open ok.\n");
 
-        if (sfinfo.channels > 2) {
+        if (sfinfo.channels > 2)
+        {
           free(effect);
           sf_close(sndfile);
           return;
         }
 
+        if (
+            ((sfinfo.format & SF_FORMAT_PCM_S8) != 0)
+            ||
+            ((sfinfo.format & SF_FORMAT_PCM_U8) != 0)
+            ||
+            ((sfinfo.format & SF_FORMAT_DPCM_8) != 0)
+           )
+          use_8bit_sound = true;
+        else
+          use_8bit_sound
+            = strcmp(get_configuration_value("force-8bit-sound"),
+                config_true_value) == 0
+            ? true
+            : false;
+
+        TRACE_LOG("8-bit sound: %d\n", use_8bit_sound);
+
         effect->is_internal_effect = false;
         effect->nof_channels = sfinfo.channels;
         effect->freq = sfinfo.samplerate;
-        effect->nof_frames = sfinfo.frames;
-        effect->data = fizmo_malloc(
-            sfinfo.frames * sizeof(int) * sfinfo.channels);
+        effect->data_len = sfinfo.frames;
 
-        if (ver < 5) {
+        if (use_8bit_sound == true)
+        {
+          effect->format = AUDIO_S8;
+          effect->data = fizmo_malloc(sfinfo.frames * sfinfo.channels);
+        }
+        else
+        {
+          effect->format = AUDIO_S16;
+          effect->data_len *= 2;
+          effect->data = fizmo_malloc(sfinfo.frames * sfinfo.channels * 2);
+        }
+
+        if (ver < 5)
+        {
           v3_sound_loops = get_v3_sound_loops_from_blorb_map(
               active_z_story->blorb_map, sound_nr);
 
@@ -687,7 +745,8 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
             ? v3_sound_loops
             : -1;
         }
-        else {
+        else
+        {
           effect->nof_repeats = repeats;
         }
 
@@ -695,71 +754,60 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
             sfinfo.channels, sfinfo.samplerate, (long int)sfinfo.frames,
             effect->nof_repeats);
 
-        data_ptr = effect->data;
-        frames_remaining = effect->nof_frames;
-        while (frames_remaining > 0) {
-          frames_to_read
-            = AIFF_INPUT_BUFFER_SIZE / sfinfo.channels < frames_remaining
-            ? AIFF_INPUT_BUFFER_SIZE / sfinfo.channels
-            : frames_remaining;
+        index = 0;
+        while ((len = sf_readf_short(
+                sndfile,
+                shortbuf,
+                128 * sfinfo.channels)) > 0)
+        {
+          for (i=0; i<len * sfinfo.channels; i++)
+          {
+            //TRACE_LOG("%d: %d\n", index, shortbuf[i] / 256 + 128);
 
-          if ( (len = sf_readf_int(
-                  sndfile,
-                  aiff_input_buffer,
-                  frames_to_read)) != frames_to_read) {
-            TRACE_LOG("retval: %s\n", sf_strerror(NULL));
-            sf_close(sndfile);
-            free(effect->data);
-            free(effect);
-            return;
-          }
-
-          // libsndfile converts the input to 32bit-signed integers which
-          // we will now convert into single bytes for the mixaudio call.
-
-          input_ptr = 0;
-          while (input_ptr < frames_to_read *  sfinfo.channels) {
-            input_data = aiff_input_buffer[input_ptr++];
-            *(data_ptr++) = input_data >> ((sizeof(int)-1) * 8);
-            for (i=0; i<sizeof(int)-1; i++) {
-              *(data_ptr++) = 0;
+            if (use_8bit_sound == true)
+              effect->data[index++] = shortbuf[i] >> 8;
+            else
+            {
+              effect->data[index++] = shortbuf[i] & 0xff;
+              effect->data[index++] = shortbuf[i] >> 8;
             }
           }
-
-          frames_remaining -= frames_to_read;
         }
+
         sf_close(sndfile);
       }
-      else {
+      else
+      {
         TRACE_LOG("retval: %s\n", sf_strerror(NULL));
-          free(effect->data);
-          free(effect);
         return;
       }
     }
     else if 
-#else // ENABLE_AIFF_FOR_SOUND_SDL2
+#else // ENABLE_AIFF_FOR_SOUND_SDL
     if 
-#endif // ENABLE_AIFF_FOR_SOUND_SDL2
+#endif // ENABLE_AIFF_FOR_SOUND_SDL
         (
         (sdl_directory_name != NULL)
         &&
         (sdl_file_prefix != NULL)
-        ) {
+        )
+    {
       // Try ".SND" effects
       sprintf(sdl_snd_filename, "%s/%s%02d.snd",
           sdl_directory_name, sdl_file_prefix, sound_nr);
 
       TRACE_LOG("[sound]Trying to open sound file \"%s\".\n", sdl_snd_filename);
       if ((in = fsi->openfile(sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ))
-          == NULL) {
+          == NULL)
+      {
         sprintf(sdl_snd_filename, "%s/%s%02d.SND",
             sdl_directory_name, sdl_file_prefix, sound_nr);
 
         TRACE_LOG("[sound]Trying to open sound file \"%s\".\n",
             sdl_snd_filename);
         if ((in = fsi->openfile(
-                sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL) {
+                sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
+        {
           sprintf(sdl_snd_filename, "%s/%s%02d.SND",
               sdl_directory_name, sdl_file_prefix_upper, sound_nr);
 
@@ -767,7 +815,8 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
               sdl_snd_filename);
 
           if ((in = fsi->openfile(
-                  sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL) {
+                  sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
+          {
             sprintf(sdl_snd_filename, "%s/%s%02d.snd",
                 sdl_directory_name, sdl_file_prefix_lower, sound_nr);
 
@@ -775,8 +824,8 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
                 sdl_snd_filename);
 
             if ((in = fsi->openfile(
-                    sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ))
-                == NULL) {
+                    sdl_snd_filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
+            {
               free(effect);
               return;
             }
@@ -784,62 +833,33 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
         }
       }
 
-      // Skip over src_len bytes.
+      // src_len = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
+      // Replaced by lower statement to avoid compiler warnings the
+      // "src_len" is not used.
       fsi->readchar(in);
       fsi->readchar(in);
+      // Finished reading src_len
 
       nof_repeats_from_file = (int)fsi->readchar(in);
       TRACE_LOG("[sound]repeats to play from file: %d.\n",
           nof_repeats_from_file);
- 
-      // Skip over base_note.
+      // base_note = (int)fsi->readchar(in);  // Replaced by the lower simple
+      // "fsi->readchar(in)" to avoid compiler complaints.
       fsi->readchar(in);
+      // Finished reading base_note
 
       frequency = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
       fsi->setfilepos(in, 2, SEEK_CUR);
-      effect->nof_frames = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
+      effect->data_len = ((int)fsi->readchar(in) << 8) | fsi->readchar(in);
 
       effect->is_internal_effect = false;
+      effect->format = AUDIO_U8;
       effect->nof_channels = 1;
       effect->freq = frequency;
-      effect->data = fizmo_malloc(effect->nof_frames * sizeof(int));
+      effect->data = fizmo_malloc(effect->data_len);
 
-      frames_remaining = effect->nof_frames;
-      data_ptr = effect->data;
-      while (frames_remaining > 0) {
-        frames_to_read
-          = SND_INPUT_BUFFER_SIZE < frames_remaining
-          ? SND_INPUT_BUFFER_SIZE
-          : frames_remaining;
-
-        TRACE_LOG("frames_remaining: %d, frames_to_read: %d.\n",
-            frames_remaining,
-            frames_to_read);
-
-        if (fsi->readchars(snd_input_buffer, frames_to_read, in)
-            != frames_to_read) {
-          TRACE_LOG("Could not read requested number of SND frames.\n");
-          fsi->closefile(in);
-          free(effect->data);
-          free(effect);
-          return;
-        }
-
-        input_ptr = 0;
-        while (input_ptr < frames_to_read ) {
-          input_byte = snd_input_buffer[input_ptr++];
-          // We have to shift a little bit since we've got unsigned
-          // input and signed output.
-          *(data_ptr++) = input_byte >> 1;
-          *(data_ptr++) = input_byte << 7;
-          for (i=0; i<sizeof(int)-2; i++) {
-            *(data_ptr++) = 0;
-          }
-        }
-
-        frames_remaining -= frames_to_read;
-      }
-
+      //delay = 0;
+      fsi->readchars(effect->data, effect->data_len, in);
       fsi->closefile(in);
 
       if (repeats >= 1)
@@ -852,7 +872,8 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
       TRACE_LOG("[sound]Repeats: %d, Volume: %d\n",
           effect->nof_repeats, effect->sound_volume);
     }
-    else {
+    else
+    {
       TRACE_LOG("[sound]Not found.\n");
       free(effect);
       return;
@@ -861,18 +882,31 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
 
   effect->sound_volume
     = round((float)SDL_MIX_MAXVOLUME / (float)8 * (float)volume);
-  TRACE_LOG("[sound]volume:%d (%d), max:%d.\n", 
-      effect->sound_volume,
-      volume,
-      SDL_MIX_MAXVOLUME);
-
+  TRACE_LOG("[sound]volume:%d (%d).\n", effect->sound_volume, volume);
   effect->routine_after_playback = routine;
 
   SDL_mutexP(sound_output_active_mutex);
 
   sound_effect_top_element++;
 
-  if (sound_effect_top_element == sound_effect_fifo_size) {
+/*
+#ifdef ENABLE_TRACING
+
+  TRACE_LOG("[sound]New effect index: %d.\n", sound_effect_top_element);
+
+  time ( &rawtime );
+  gettimeofday(&tv, &tz);
+  tm=localtime(&tv.tv_sec);
+
+  TRACE_LOG(
+      "\n\n[sound](%s,%ld)store new effect (%d:%02d:%02d %d)\n\n",
+      ctime (&rawtime), rawtime, tm->tm_hour, tm->tm_min,
+      tm->tm_sec, tv.tv_usec);
+#endif
+  */
+
+  if (sound_effect_top_element == sound_effect_fifo_size)
+  {
     sound_effect_fifo_size += 4;
 
     TRACE_LOG("[sound]Resizing stack to %lu bytes.\n",
@@ -885,21 +919,26 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
   TRACE_LOG("[sound]%d\n", sound_effect_top_element);
   sdl_sound_effect_fifo[sound_effect_top_element] = effect;
 
-  if (bool_equal(sound_output_active, false)) {
-    if (effect_thread == NULL) {
+  if (bool_equal(sound_output_active, false))
+  {
+    if (effect_thread == NULL)
+    {
       TRACE_LOG("[sound]Creating new effect_thread.\n");
       effect_thread = SDL_CreateThread(&effect_thread_routine, "fizmo-libsndifsdl2", NULL);
     }
     start_next_effect();
     SDL_mutexV(sound_output_active_mutex);
   }
-  else {
-    if (read_has_occurred == false) {
+  else
+  {
+    if (read_has_occurred == false)
+    {
       TRACE_LOG("[sound]New sound during same read cycle, starting flush.\n");
       flush_sound_effect_stack = true;
     }
-    else {
-      SDL_PauseAudioDevice(sdl_audio_device_id, 1);
+    else
+    {
+      SDL_PauseAudio(1);
       clear_current_effect_from_stack();
       sound_output_active = false;
     }
@@ -908,22 +947,30 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
 }
 
 
-void sdl2_stop_sound(int UNUSED(sound_nr)) {
+void sdl2_stop_sound(int UNUSED(sound_nr))
+{
+  SDL_TimerID timer_to_terminate;
+
   if (sound_init_performed == false)
     return;
 
   SDL_mutexP(sound_output_active_mutex);
-  if (sdl_finish_timer != -1) {
-    SDL_RemoveTimer(sdl_finish_timer);
+  timer_to_terminate = sdl_finish_timer;
+  if (timer_to_terminate != -1)
+  {
+    SDL_RemoveTimer(timer_to_terminate);
   }
 
-  if (sound_output_active == true) {
-    SDL_PauseAudioDevice(sdl_audio_device_id, 1);
+  if (sound_output_active == true)
+  {
+    SDL_PauseAudio(1);
     clear_all_effects_from_stack();
 
-    if (is_audio_open == true) {
+    if (is_audio_open == true)
+    {
       TRACE_LOG("[sound]errno: %d\n", errno);
-      SDL_CloseAudioDevice(sdl_audio_device_id);
+      // FIXME: errno is set to 60 (Operation timed out) here:
+      SDL_CloseAudio();
       TRACE_LOG("[sound]errno: %d\n", errno);
       errno = 0;
       is_audio_open = false;
@@ -935,29 +982,36 @@ void sdl2_stop_sound(int UNUSED(sound_nr)) {
 }
 
 
-void sdl2_finish_sound(int UNUSED(sound_nr)) {
+void sdl2_finish_sound(int UNUSED(sound_nr))
+{
+  /*
+  if (sound_init_performed == false)
+    return;
+  */
 }
 
 
-void sdl2_keyboard_input_has_occurred() {
+void sdl2_keyboard_input_has_occurred()
+{
   SDL_mutexP(sound_output_active_mutex);
   read_has_occurred = true;
   SDL_mutexV(sound_output_active_mutex);
 }
 
 
-uint16_t sdl2_get_next_sound_end_routine() {
+uint16_t sdl2_get_next_sound_end_routine()
+{
   uint16_t result;
 
   SDL_mutexP(sound_output_active_mutex);
 
-  if (routine_stack_top_element >= 0) {
+  if (routine_stack_top_element >= 0)
+  {
     result = routine_stack[routine_stack_top_element];
     routine_stack_top_element--;
   }
-  else {
+  else
     result = 0;
-  }
 
   SDL_mutexV(sound_output_active_mutex);
 
@@ -965,32 +1019,65 @@ uint16_t sdl2_get_next_sound_end_routine() {
 }
 
 
-static char *get_sdl2_interface_name() {
+static char *get_sdl2_interface_name()
+{
   return sdl2_interface_name;
 }
 
 
-static char *get_sdl2_interface_version() {
+static char *get_sdl2_interface_version()
+{
   return sdl2_interface_version;
 }
 
 
-static int sdl2_parse_config_parameter(char *key, char *value) {
-  return -2;
+static int sdl2_parse_config_parameter(char *key, char *value)
+{
+  if (strcasecmp(key, "force-8bit-sound") == 0)
+  {
+    if (
+        (value == NULL)
+        ||
+        (*value == 0)
+        ||
+        (strcmp(value, config_true_value) == 0)
+       )
+      force_8bit_sound = true;
+    else
+      force_8bit_sound = false;
+    free(value);
+    return 0;
+  }
+  else
+  {
+    return -2;
+  }
 }
 
 
-static char *sdl2_get_config_value(char *key) {
-  return NULL;
+static char *sdl2_get_config_value(char *key)
+{
+  if (strcasecmp(key, "force-8bit-sound") == 0)
+  {
+    return force_8bit_sound == true
+      ? config_true_value
+      : config_false_value;
+  }
+  else
+  {
+    return NULL;
+  }
 }
 
 
-static char **sdl2_get_config_option_names() {
-  return NULL;
+static char **sdl2_get_config_option_names()
+{
+  return config_option_names;
 }
 
 
-struct z_sound_interface sound_interface_sdl2 = {
+struct z_sound_interface sound_interface_sdl2 =
+{
   &sdl2_init_sound,
   &sdl2_close_sound,
   &sdl2_prepare_sound,
@@ -1006,6 +1093,8 @@ struct z_sound_interface sound_interface_sdl2 = {
   &sdl2_get_config_option_names
 };
 
+//sound_interface_sdl2 = &sound_interface_sdl2_struct;
+//struct z_sound_interface *sound_interface_sdl2 = &sound_interface_sdl2_struct;
 
 #endif /* sound_sdl2_c_INCLUDED */
 
