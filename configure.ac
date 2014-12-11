@@ -37,7 +37,12 @@ AC_ARG_ENABLE([tracing],
 
 m4_include(config-flags.m4)
 
-AC_INIT([libsndifsdl2], [0.8.0])
+AC_INIT(
+ [libsndifsdl2],
+ [0.8.0])
+ fizmo@spellbreaker.org,
+ libsndifsdl2)
+
 AC_CONFIG_AUX_DIR([.])
 
 libsndif_reqs="sdl2"

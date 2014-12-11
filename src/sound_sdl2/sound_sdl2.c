@@ -860,7 +860,7 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
   }
 
   effect->sound_volume
-    = round((float)SDL_MIX_MAXVOLUME / (float)8 * (float)volume);
+    = SDL_MIX_MAXVOLUME / 8 * volume;
   TRACE_LOG("[sound]volume:%d (%d), max:%d.\n", 
       effect->sound_volume,
       volume,
