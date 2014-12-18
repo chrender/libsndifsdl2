@@ -6,8 +6,8 @@
 # The $build_prefix, $build_prefix_cflags and $build_prefix_libs are
 # pre-defined by fizmo-dist.
 
-AC_SUBST([libsndifsdl2_CFLAGS], "-I$build_prefix_cflags $sdl2_CFLAGS $sndfile_CFLAGS")
-AC_SUBST([libsndifsdl2_LIBS], "-L$build_prefix_libs -lsndifsdl2 $sdl2_LIBS $sndfile_LIBS")
+# Changes in this file have to be mirrored in the corresponding frontend
+# "config-subst-libsndifsdl2.m4" files.
 
 AC_SUBST([SOUND_INTERFACE_NAME], libsndifsdl2)
 AC_SUBST([SOUND_INTERFACE_STRUCT_NAME], sound_interface_sdl2)
