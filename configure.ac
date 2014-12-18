@@ -39,7 +39,7 @@ m4_include(config-flags.m4)
 
 AC_INIT(
  [libsndifsdl2],
- [0.8.0])
+ [0.8.0],
  fizmo@spellbreaker.org,
  libsndifsdl2)
 
