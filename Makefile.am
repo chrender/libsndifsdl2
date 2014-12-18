@@ -45,6 +45,9 @@ libsndifsdl2.a::
 	cd src/sound_sdl2 ; make
 	mv src/sound_sdl2/libsndifsdl2.a .
 
+# Note: When chancing Cflags or Libs below, also update "fizmo-dist"'s
+# Makefile.am accordingly.
+
 install-dev:: libsndifsdl2.a
 	mkdir -p $(fizmo_build_prefix)/lib/fizmo
 	cp libsndifsdl2.a $(fizmo_build_prefix)/lib/fizmo
