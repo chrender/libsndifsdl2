@@ -482,7 +482,11 @@ void sdl2_close_sound() {
   sound_init_performed = false;
   SDL_mutexV(sound_output_active_mutex);
   SDL_DestroyMutex(sound_output_active_mutex);
-  SDL_Quit();
+
+  if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+    TRACE_LOG("Closing SDL interface.\n");
+    SDL_Quit();
+  }
 }
 
 
