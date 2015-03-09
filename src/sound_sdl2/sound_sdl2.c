@@ -242,7 +242,7 @@ static void clear_all_effects_from_stack() {
 
 
 static void clear_current_effect_from_stack() {
-  SDL_TimerID timer_to_terminate;
+  //SDL_TimerID timer_to_terminate;
 
   TRACE_LOG("\n\n[sound]Clearing current effect from stack.\n\n");
 
@@ -307,7 +307,7 @@ static Uint32 sdl_effect_finished(Uint32 UNUSED(interval),
 void mixaudio(void *UNUSED(unused), Uint8 *stream, int len) {
   Uint32 interval;
   int size_to_process, remaining_size;
-  Uint8 *dest_index;
+  //Uint8 *dest_index;
 
   TRACE_LOG("\n\n[sound]mixaudio call.\n\n");
   SDL_memset(stream, 0, len);
@@ -640,9 +640,11 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
       if (tone330hz_buf == NULL) {
         tone330hz_buf = fizmo_malloc(TONE_330_HZ_SAMPLE_SIZE * sizeof(int));
         data_ptr = tone330hz_buf;
-        *(tone330hz_buf++) = tone330hz[i];
-        for (i=0; i<sizeof(int)-1; i++) {
-          *(tone330hz_buf++) = 0;
+        for (i=0; i<TONE_330_HZ_SAMPLE_SIZE; i++) {
+          *(tone330hz_buf++) = tone330hz[i];
+          for (i=0; i<sizeof(int)-1; i++) {
+            *(tone330hz_buf++) = 0;
+          }
         }
       }
       effect->data = tone330hz_buf;
@@ -655,7 +657,7 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
     TRACE_LOG("Trying to find blorb sound number %d.\n", sound_nr);
     if ((sound_blorb_index = active_blorb_interface->get_blorb_offset(
             active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1) {
-      TRACE_LOG("fd: %d.\n", fd);
+      //TRACE_LOG("fd: %d.\n", fd);
       fd = fsi->get_fileno(active_z_story->blorb_file);
       TRACE_LOG("Seeking pos %x\n", sound_blorb_index-8);
       lseek(fd, sound_blorb_index-8, SEEK_SET);
