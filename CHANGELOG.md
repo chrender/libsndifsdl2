@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.8.0**
+   **Version 0.8.0 — October 2, 2015**
 
  - Implemented SDL2-compatible sound interface, forked from libsoundofsdl. Note: In case you're encountering messages from ALSA containing “snd_pcm_recover” and “underrun” errors, upgrade SDL2 to version 2.0.3.
 

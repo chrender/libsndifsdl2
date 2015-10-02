@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
   <change version="0.8.0">
+    <datetime day-of-week="Fri" month="10" day="2" hour="23"
+      minute="22" second="12" timezone="CEST" year="2015"/>
     <logentry>Implemented SDL2-compatible sound interface, forked from libsoundofsdl. Note: In case you're encountering messages from ALSA containing “snd_pcm_recover” and “underrun” errors, upgrade SDL2 to version 2.0.3.</logentry>
   </change>
 
