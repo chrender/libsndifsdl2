@@ -3,7 +3,7 @@
 #
 # This file is part of fizmo.
 #
-# Copyright (c) 2009-2015 Christoph Ender.
+# Copyright (c) 2009-2016 Christoph Ender.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ install-dev:: libsndifsdl2.a
 	echo >>$(PKGFILE)
 	echo 'Name: libsndifsdl2' >>$(PKGFILE)
 	echo 'Description: libsndifsdl2' >>$(PKGFILE)
-	echo 'Version: 0.8.0' >>$(PKGFILE)
+	echo 'Version: 0.8.1' >>$(PKGFILE)
 	echo 'Requires: libfizmo >= 0.7.7, $(LIBSNDIFSDL2_REQS)' >>$(PKGFILE)
 	echo 'Requires.private:' >>$(PKGFILE)
 	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(SOUNDSDL2_NONPKG_CFLAGS)' >>$(PKGFILE)

@@ -3,7 +3,7 @@
  *
  * This file is part of fizmo.
  *
- * Copyright (c) 2009-2015 Christoph Ender.
+ * Copyright (c) 2009-2016 Christoph Ender.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@
 
 
 static char *sdl2_interface_name = "libsdl2sound";
-static char *sdl2_interface_version = "0.8.0";
+static char *sdl2_interface_version = "0.8.1";
 
 struct sound_effect {
   Uint8 *data;
