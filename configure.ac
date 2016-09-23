@@ -39,14 +39,14 @@ m4_include(config-flags.m4)
 
 AC_INIT(
  [libsndifsdl2],
- [0.8.1],
+ [0.8.2],
  fizmo@spellbreaker.org,
  libsndifsdl2)
 
 AC_CONFIG_AUX_DIR([.])
 
 libsndif_reqs="sdl2"
-PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.7])
+PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.13])
 m4_include(config-libs.m4)
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -54,8 +54,9 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AM_PROG_AR
 
-AC_SUBST([DEV_BUILD_PREFIX], "$DESTDIR$prefix")
 AC_SUBST([LIBSNDIFSDL2_REQS], $libsndif_reqs)
+
+AM_CONDITIONAL([FIZMO_DIST_BUILD], [test "x" = ""])
 
 AM_CONDITIONAL([ENABLE_TRACING],
                 [test "$enable_tracing" = "yes"])

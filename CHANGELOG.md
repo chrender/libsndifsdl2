@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.8.2**
+
+ - Improved build system for separate library and interface builds.
+
+---
+
+
    **Version 0.8.1**
 
  - Use tiny-xml-doc-tools for documentation.

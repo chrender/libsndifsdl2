@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
+  <change version="0.8.2">
+    <logentry>Improved build system for separate library and interface builds.</logentry>
+  </change>
+
   <change version="0.8.1">
     <logentry>Use tiny-xml-doc-tools for documentation.</logentry>
   </change>

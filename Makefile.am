@@ -33,10 +33,14 @@ AUTOMAKE_OPTIONS = -Wno-override
 
 localedir = $(datarootdir)/fizmo/locales
 
-fizmo_build_prefix=$(DEV_BUILD_PREFIX)
+if FIZMO_DIST_BUILD
+  dev_prefix=$(FIZMO_DIST_BUILD_PREFIX)
+else
+  dev_prefix=$(prefix)
+endif
 
-PKG_DIR = $(fizmo_build_prefix)/lib/pkgconfig
-PKGFILE = $(PKG_DIR)/libsndifsdl2.pc
+pkg_dir = $(DESTDIR)$(dev_prefix)/lib/pkgconfig
+pkgfile = $(pkg_dir)/libsndifsdl2.pc
 
 SUBDIRS = src/sound_sdl2 .
 noinst_LIBRARIES = libsndifsdl2.a
@@ -49,25 +53,25 @@ libsndifsdl2.a::
 # Makefile.am accordingly.
 
 install-dev:: libsndifsdl2.a
-	mkdir -p $(fizmo_build_prefix)/lib/fizmo
-	cp libsndifsdl2.a $(fizmo_build_prefix)/lib/fizmo
-	mkdir -p $(fizmo_build_prefix)/include/fizmo/sound_sdl2
+	mkdir -p $(DESTDIR)$(dev_prefix)/lib/fizmo
+	cp libsndifsdl2.a $(DESTDIR)$(dev_prefix)/lib/fizmo
+	mkdir -p $(DESTDIR)$(dev_prefix)/include/fizmo/sound_sdl2
 	cp src/sound_sdl2/sound_sdl2.h \
-	  $(fizmo_build_prefix)/include/fizmo/sound_sdl2
-	mkdir -p $(PKG_DIR)
-	echo 'prefix=$(fizmo_build_prefix)' >$(PKGFILE)
-	echo 'exec_prefix=$${prefix}' >>$(PKGFILE)
-	echo 'libdir=$${exec_prefix}/lib/fizmo' >>$(PKGFILE)
-	echo 'includedir=$${prefix}/include/fizmo' >>$(PKGFILE)
-	echo >>$(PKGFILE)
-	echo 'Name: libsndifsdl2' >>$(PKGFILE)
-	echo 'Description: libsndifsdl2' >>$(PKGFILE)
-	echo 'Version: 0.8.1' >>$(PKGFILE)
-	echo 'Requires: libfizmo >= 0.7.12, $(LIBSNDIFSDL2_REQS)' >>$(PKGFILE)
-	echo 'Requires.private:' >>$(PKGFILE)
-	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(SOUNDSDL2_NONPKG_CFLAGS)' >>$(PKGFILE)
-	echo 'Libs: -L$(fizmo_build_prefix)/lib/fizmo -lsndifsdl2 $(SOUNDSDL2_PKG_LIBS)'  >>$(PKGFILE)
-	echo >>$(PKGFILE)
+	  $(DESTDIR)$(dev_prefix)/include/fizmo/sound_sdl2
+	mkdir -p $(pkg_dir)
+	echo 'prefix=$(dev_prefix)' >$(pkgfile)
+	echo 'exec_prefix=$${prefix}' >>$(pkgfile)
+	echo 'libdir=$${exec_prefix}/lib/fizmo' >>$(pkgfile)
+	echo 'includedir=$${prefix}/include/fizmo' >>$(pkgfile)
+	echo >>$(pkgfile)
+	echo 'Name: libsndifsdl2' >>$(pkgfile)
+	echo 'Description: libsndifsdl2' >>$(pkgfile)
+	echo 'Version: 0.8.2' >>$(pkgfile)
+	echo 'Requires: libfizmo >= 0.7.13, $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
+	echo 'Requires.private:' >>$(pkgfile)
+	echo 'Cflags: -I$(dev_prefix)/include/fizmo $(SOUNDSDL2_NONPKG_CFLAGS)' >>$(pkgfile)
+	echo 'Libs: -L$(dev_prefix)/lib/fizmo -lsndifsdl2 $(SOUNDSDL2_PKG_LIBS)'  >>$(pkgfile)
+	echo >>$(pkgfile)
 
 install-data-local:
 
@@ -76,12 +80,9 @@ install-data-local:
 # a - sign. rmdir may fail in clean-dev in case other libs have installed
 # development files, or in case clean-dev has been run before.
 clean-dev::
-	-rm "$(fizmo_build_prefix)/lib/fizmo/libsndifsdl2.a"
-	-rmdir "$(fizmo_build_prefix)/lib/fizmo"
-	-rm -rf "$(fizmo_build_prefix)/include/fizmo/sound_sdl2"
-	-rmdir "$(fizmo_build_prefix)/include/fizmo"
-	-rmdir "$(fizmo_build_prefix)/include"
-	-rm "$(PKGFILE)"
-	-rmdir "$(PKG_DIR)"
-	-rmdir "$(fizmo_build_prefix)/lib"
+	-rm "$(DESTDIR)$(dev_prefix)/lib/fizmo/libsndifsdl2.a"
+	-rmdir "$(DESTDIR)$(dev_prefix)/lib/fizmo"
+	-rm -rf "$(DESTDIR)$(dev_prefix)/include/fizmo/sound_sdl2"
+	-rmdir "$(DESTDIR)$(dev_prefix)/include/fizmo"
+	-rm "$(pkgfile)"
 
