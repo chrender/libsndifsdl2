@@ -1,0 +1,29 @@
+Source: libsndifsdl2
+Section: libdevel
+Priority: extra
+Maintainer: Christoph Ender <christoph.ender@spellbreaker.org>
+Build-Depends: debhelper (>= 9.0.0),
+ dpkg-dev (>= 1.16.1~),
+ dh-autoreconf,
+ automake,
+ autoconf,
+ pkg-config,
+ libsdl2-dev,
+ libsndfile1-dev
+Standards-Version: 3.9.8
+Homepage: https://fizmo.spellbreaker.org/
+
+Package: libsndifsdl2-common
+Architecture: all
+Depends: ${misc:Depends}
+Description: Provides localization data for libsndifsdl2.
+ This package is required by all packages which are utilizing libsndifsdl2.
+
+Package: libsndifsdl2-dev
+Architecture: any
+Depends: libsndifsdl2-common,
+ ${shlibs:Depends},
+ ${misc:Depends}
+Description: SDL2-based sound support for the fizmo interpreter.
+ This library provides sound functionality related to the fizmo interpreter.
+
