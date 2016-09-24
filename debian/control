@@ -13,12 +13,6 @@ Build-Depends: debhelper (>= 9.0.0),
 Standards-Version: 3.9.8
 Homepage: https://fizmo.spellbreaker.org/
 
-Package: libsndifsdl2-common
-Architecture: all
-Depends: ${misc:Depends}
-Description: Provides localization data for libsndifsdl2.
- This package is required by all packages which are utilizing libsndifsdl2.
-
 Package: libsndifsdl2-dev
 Architecture: any
 Depends: libsndifsdl2-common,
