@@ -8,7 +8,7 @@
 ---
 
 
-   **Version 0.8.1**
+   **Version 0.8.1 — August 31, 2016**
 
  - Use tiny-xml-doc-tools for documentation.
 
