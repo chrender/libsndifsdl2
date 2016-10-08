@@ -1,6 +1,5 @@
-libsndifsdl2 (0.8.2-1) unstable; urgency=low
+libsndifsdl2 (0.8.2-1) experimental; urgency=low
 
   * Initial release.
 
- -- Christoph Ender <christoph.ender@spellbreaker.org>  Sat, 24 Sep 2016 18:14:34 +0200
-
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Sun, 9 Oct 2016 00:27:00 +0200 
