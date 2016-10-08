@@ -1,8 +1,8 @@
 
-   Version 0.8.2
+   Version 0.8.2 -- October 8, 2016
  - Improved build system for separate library and interface builds.
 
-   Version 0.8.1
+   Version 0.8.1 -- August 31, 2016
  - Use tiny-xml-doc-tools for documentation.
 
    Version 0.8.0 -- October 9, 2015
