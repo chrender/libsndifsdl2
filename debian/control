@@ -17,6 +17,7 @@ Package: libsndifsdl2-dev
 Architecture: any
 Depends: ${shlibs:Depends},
  ${misc:Depends}
-Description: SDL2-based sound support for the fizmo interpreter.
- This library provides sound functionality related to the fizmo interpreter.
-
+Description: SDL2-based sound support for the fizmo interpreter
+ This library provides sound functionality related to the fizmo interpreter
+ using the SDL2 library. It supports Infocom's .snd files as well as
+ AIFF from blorb files.
