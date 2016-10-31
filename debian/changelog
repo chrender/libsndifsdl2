@@ -1,5 +1,6 @@
 libsndifsdl2 (0.8.2-1) experimental; urgency=low
 
-  * Initial release.
+  * Initial release (Closes: #842691).
 
- -- Christoph Ender <christoph.ender@spellbreaker.org>  Sun, 9 Oct 2016 00:27:00 +0200 
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Mon, 31 Oct 2016 17:35:00 +0100 
+
