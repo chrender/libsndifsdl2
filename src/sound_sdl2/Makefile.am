@@ -29,7 +29,7 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-AM_CFLAGS = $(libfizmo_CFLAGS) $(sdl2_CFLAGS) $(sndfile_CFLAGS)
+AM_CFLAGS = $(libfizmo_CFLAGS) $(sdl2_CFLAGS) $(sndfile_CFLAGS) -fPIC
 AM_CPPFLAGS =
 LDADD = $(libfizmo_LIBS) $(sdl2_LIBS) $(sndfile_LIBS)
 
