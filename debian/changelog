@@ -1,3 +1,10 @@
+libsndifsdl2 (0.8.2-3) experimental; urgency=low
+
+  * Fixed machine-readable debian/copyright file.
+
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Sun, 9 Apr 2017 09:55:00 +0200
+
+
 libsndifsdl2 (0.8.2-2) experimental; urgency=low
 
   * Fixed superfluous dpkg-dev dependency and formatting issues.
