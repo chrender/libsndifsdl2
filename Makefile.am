@@ -36,7 +36,7 @@ localedir = $(datarootdir)/fizmo/locales
 if FIZMO_DIST_BUILD
   dev_prefix=$(FIZMO_DIST_BUILD_PREFIX)
 else
-  dev_prefix=$(prefix)
+  dev_prefix=$(DESTDIR)/$(prefix)
 endif
 
 pkg_dir = $(DESTDIR)$(dev_prefix)/lib/pkgconfig
@@ -53,11 +53,11 @@ libsndifsdl2.a::
 # Makefile.am accordingly.
 
 install-dev:: libsndifsdl2.a
-	mkdir -p $(DESTDIR)$(dev_prefix)/lib/fizmo
-	cp libsndifsdl2.a $(DESTDIR)$(dev_prefix)/lib/fizmo
-	mkdir -p $(DESTDIR)$(dev_prefix)/include/fizmo/sound_sdl2
+	mkdir -p $(dev_prefix)/lib/fizmo
+	cp libsndifsdl2.a $(dev_prefix)/lib/fizmo
+	mkdir -p $(dev_prefix)/include/fizmo/sound_sdl2
 	cp src/sound_sdl2/sound_sdl2.h \
-	  $(DESTDIR)$(dev_prefix)/include/fizmo/sound_sdl2
+	  $(dev_prefix)/include/fizmo/sound_sdl2
 	mkdir -p $(pkg_dir)
 	echo 'prefix=$(dev_prefix)' >$(pkgfile)
 	echo 'exec_prefix=$${prefix}' >>$(pkgfile)
@@ -66,8 +66,8 @@ install-dev:: libsndifsdl2.a
 	echo >>$(pkgfile)
 	echo 'Name: libsndifsdl2' >>$(pkgfile)
 	echo 'Description: libsndifsdl2' >>$(pkgfile)
-	echo 'Version: 0.8.2' >>$(pkgfile)
-	echo 'Requires: libfizmo >= 0.7.13, $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
+	echo 'Version: 0.8.3' >>$(pkgfile)
+	echo 'Requires: libfizmo >= 0.7.15, $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
 	echo 'Requires.private:' >>$(pkgfile)
 	echo 'Cflags: -I$(dev_prefix)/include/fizmo $(SOUNDSDL2_NONPKG_CFLAGS)' >>$(pkgfile)
 	echo 'Libs: -L$(dev_prefix)/lib/fizmo -lsndifsdl2 $(SOUNDSDL2_PKG_LIBS)'  >>$(pkgfile)
@@ -80,9 +80,9 @@ install-data-local:
 # a - sign. rmdir may fail in clean-dev in case other libs have installed
 # development files, or in case clean-dev has been run before.
 clean-dev::
-	-rm "$(DESTDIR)$(dev_prefix)/lib/fizmo/libsndifsdl2.a"
-	-rmdir "$(DESTDIR)$(dev_prefix)/lib/fizmo"
-	-rm -rf "$(DESTDIR)$(dev_prefix)/include/fizmo/sound_sdl2"
-	-rmdir "$(DESTDIR)$(dev_prefix)/include/fizmo"
+	-rm "$(dev_prefix)/lib/fizmo/libsndifsdl2.a"
+	-rmdir "$(dev_prefix)/lib/fizmo"
+	-rm -rf "$(dev_prefix)/include/fizmo/sound_sdl2"
+	-rmdir "$(dev_prefix)/include/fizmo"
 	-rm "$(pkgfile)"
 

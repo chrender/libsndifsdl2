@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.8.3**
+
+ - Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.
+
+---
+
+
    **Version 0.8.2 — October 8, 2016**
 
  - Improved build system for separate library and interface builds.

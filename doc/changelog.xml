@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
+  <change version="0.8.3">
+    <logentry>Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.</logentry>
+  </change>
+
   <change version="0.8.2">
     <datetime day-of-week="Sat" month="10" day="8" hour="21"
       minute="21" second="15" timezone="CEST" year="2016"/>
