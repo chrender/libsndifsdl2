@@ -39,7 +39,7 @@ else
   dev_prefix=$(DESTDIR)/$(prefix)
 endif
 
-pkg_dir = $(DESTDIR)$(dev_prefix)/lib/pkgconfig
+pkg_dir = $(dev_prefix)/lib/pkgconfig
 pkgfile = $(pkg_dir)/libsndifsdl2.pc
 
 SUBDIRS = src/sound_sdl2 .
