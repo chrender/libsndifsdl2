@@ -10,7 +10,7 @@ Build-Depends: debhelper (>= 9.0.0),
  libsdl2-dev,
  libsndfile1-dev,
  libfizmo-dev
-Standards-Version: 3.9.8
+Standards-Version: 4.0.0
 Homepage: https://fizmo.spellbreaker.org/
 
 Package: libsndifsdl2-dev

@@ -1,3 +1,11 @@
+libsndifsdl2 (0.8.2-4) unstable; urgency=low
+
+  * Switch to unstable.
+  * New standards version 4.0.0.
+
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Sun, 16 Apr 2017 21:15:00 +0200
+
+
 libsndifsdl2 (0.8.2-3) experimental; urgency=low
 
   * Fixed machine-readable debian/copyright file.
