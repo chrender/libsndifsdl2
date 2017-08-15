@@ -46,7 +46,7 @@ AC_INIT(
 AC_CONFIG_AUX_DIR([.])
 
 libsndif_reqs="sdl2"
-PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.13])
+PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.15])
 m4_include(config-libs.m4)
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
