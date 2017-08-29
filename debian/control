@@ -16,7 +16,7 @@ Homepage: https://fizmo.spellbreaker.org/
 Package: libsndifsdl2-dev
 Architecture: any
 Depends: ${shlibs:Depends},
- libsdl2,
+ libsdl2-2.0-0,
  libsndfile1
  ${misc:Depends}
 Description: SDL2-based sound support for the fizmo interpreter
