@@ -69,10 +69,11 @@ install-dev:: libsndifsdl2.a
 	echo 'Name: libsndifsdl2' >>$(pkgfile)
 	echo 'Description: libsndifsdl2' >>$(pkgfile)
 	echo 'Version: 0.8.3' >>$(pkgfile)
-	echo 'Requires: libfizmo >= 0.7.15, $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
+	echo 'Requires: $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
 	echo 'Requires.private:' >>$(pkgfile)
-	echo 'Cflags: -I$(pkg_prefix)/include/fizmo $(SOUNDSDL2_NONPKG_CFLAGS)' >>$(pkgfile)
-	echo 'Libs: -L$(pkg_prefix)/lib/fizmo -lsndifsdl2 $(SOUNDSDL2_PKG_LIBS)'  >>$(pkgfile)
+	echo 'Cflags: -I$(pkg_prefix)/include/fizmo' >>$(pkgfile)
+	echo 'Libs: -L$(pkg_prefix)/lib/fizmo -lsndifsdl2 $(LIBSDL2_NONPKG_LIBS) $(LIBSNDFILE_NONPKG_LIBS)'  >>$(pkgfile)
+	echo 'Libs.private:'  >>$(pkgfile)
 	echo >>$(pkgfile)
 
 install-data-local:

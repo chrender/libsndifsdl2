@@ -29,9 +29,9 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-AM_CFLAGS = $(libfizmo_CFLAGS) $(sdl2_CFLAGS) $(sndfile_CFLAGS) -fPIC
+AM_CFLAGS = $(libfizmo_CFLAGS) $(libsdl2_CFLAGS) $(libsndfile_CFLAGS) -fPIC
 AM_CPPFLAGS =
-LDADD = $(libfizmo_LIBS) $(sdl2_LIBS) $(sndfile_LIBS)
+LDADD = $(libfizmo_LIBS) $(libsdl2_LIBS) $(libsndfile_LIBS)
 
 localedir = $(datarootdir)/fizmo/locales
 

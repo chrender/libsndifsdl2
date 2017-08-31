@@ -45,7 +45,8 @@ AC_INIT(
 
 AC_CONFIG_AUX_DIR([.])
 
-libsndif_reqs="sdl2"
+libsndifsdl2_reqs="libfizmo >= 0.7.15"
+
 PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.15])
 m4_include(config-libs.m4)
 
@@ -54,7 +55,11 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AM_PROG_AR
 
-AC_SUBST([LIBSNDIFSDL2_REQS], $libsndif_reqs)
+AC_SUBST([LIBSNDIFSDL2_REQS], $libsndifsdl2_reqs)
+AC_SUBST([LIBSDL2_NONPKG_CFLAGS], $libsdl2_nonpkg_cflags)
+AC_SUBST([LIBSDL2_NONPKG_LIBS], $libsdl2_nonpkg_libs)
+AC_SUBST([LIBSNDFILE_NONPKG_CFLAGS], $libsndfile_nonpkg_cflags)
+AC_SUBST([LIBSNDFILE_NONPKG_LIBS], $libsndfile_nonpkg_libs)
 
 AM_CONDITIONAL([FIZMO_DIST_BUILD], [test "x" = ""])
 
