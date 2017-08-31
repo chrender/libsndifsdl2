@@ -7,17 +7,19 @@ Build-Depends: debhelper (>= 9.0.0),
  automake,
  autoconf,
  pkg-config,
+ libfizmo-dev,
  libsdl2-dev,
- libsndfile1-dev,
- libfizmo-dev
+ libsndfile1-dev
 Standards-Version: 4.0.0
 Homepage: https://fizmo.spellbreaker.org/
 
 Package: libsndifsdl2-dev
 Architecture: any
 Depends: ${shlibs:Depends},
- libsdl2-2.0-0,
- libsndfile1
+ libfizmo-dev,
+ libsdl2-dev,
+ libsndfile1-dev
+Standards-Version: 4.0.0
  ${misc:Depends}
 Description: SDL2-based sound support for the fizmo interpreter
  This library provides sound functionality related to the fizmo interpreter
