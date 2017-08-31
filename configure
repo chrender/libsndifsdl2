@@ -594,6 +594,10 @@ ENABLE_TRACING_FALSE
 ENABLE_TRACING_TRUE
 FIZMO_DIST_BUILD_FALSE
 FIZMO_DIST_BUILD_TRUE
+LIBSNDFILE_NONPKG_LIBS
+LIBSNDFILE_NONPKG_CFLAGS
+LIBSDL2_NONPKG_LIBS
+LIBSDL2_NONPKG_CFLAGS
 LIBSNDIFSDL2_REQS
 ac_ct_AR
 AR
@@ -642,10 +646,10 @@ am__isrc
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
-sndfile_LIBS
-sndfile_CFLAGS
-sdl2_LIBS
-sdl2_CFLAGS
+libsndfile_LIBS
+libsndfile_CFLAGS
+libsdl2_LIBS
+libsdl2_CFLAGS
 libfizmo_LIBS
 libfizmo_CFLAGS
 PKG_CONFIG_LIBDIR
@@ -706,10 +710,10 @@ PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 libfizmo_CFLAGS
 libfizmo_LIBS
-sdl2_CFLAGS
-sdl2_LIBS
-sndfile_CFLAGS
-sndfile_LIBS
+libsdl2_CFLAGS
+libsdl2_LIBS
+libsndfile_CFLAGS
+libsndfile_LIBS
 CC
 CFLAGS
 LDFLAGS
@@ -1360,12 +1364,14 @@ Some influential environment variables:
               C compiler flags for libfizmo, overriding pkg-config
   libfizmo_LIBS
               linker flags for libfizmo, overriding pkg-config
-  sdl2_CFLAGS C compiler flags for sdl2, overriding pkg-config
-  sdl2_LIBS   linker flags for sdl2, overriding pkg-config
-  sndfile_CFLAGS
-              C compiler flags for sndfile, overriding pkg-config
-  sndfile_LIBS
-              linker flags for sndfile, overriding pkg-config
+  libsdl2_CFLAGS
+              C compiler flags for libsdl2, overriding pkg-config
+  libsdl2_LIBS
+              linker flags for libsdl2, overriding pkg-config
+  libsndfile_CFLAGS
+              C compiler flags for libsndfile, overriding pkg-config
+  libsndfile_LIBS
+              linker flags for libsndfile, overriding pkg-config
   CC          C compiler command
   CFLAGS      C compiler flags
   LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
@@ -1874,7 +1880,8 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 
 
-libsndif_reqs="sdl2"
+libsndifsdl2_reqs="libfizmo >= 0.7.15"
+
 
 
 
@@ -2089,11 +2096,11 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sdl2" >&5
-$as_echo_n "checking for sdl2... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libsdl2" >&5
+$as_echo_n "checking for libsdl2... " >&6; }
 
-if test -n "$sdl2_CFLAGS"; then
-    pkg_cv_sdl2_CFLAGS="$sdl2_CFLAGS"
+if test -n "$libsdl2_CFLAGS"; then
+    pkg_cv_libsdl2_CFLAGS="$libsdl2_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sdl2\""; } >&5
@@ -2101,7 +2108,7 @@ if test -n "$sdl2_CFLAGS"; then
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_sdl2_CFLAGS=`$PKG_CONFIG --cflags "sdl2" 2>/dev/null`
+  pkg_cv_libsdl2_CFLAGS=`$PKG_CONFIG --cflags "sdl2" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -2109,8 +2116,8 @@ fi
  else
     pkg_failed=untried
 fi
-if test -n "$sdl2_LIBS"; then
-    pkg_cv_sdl2_LIBS="$sdl2_LIBS"
+if test -n "$libsdl2_LIBS"; then
+    pkg_cv_libsdl2_LIBS="$libsdl2_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sdl2\""; } >&5
@@ -2118,7 +2125,7 @@ if test -n "$sdl2_LIBS"; then
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_sdl2_LIBS=`$PKG_CONFIG --libs "sdl2" 2>/dev/null`
+  pkg_cv_libsdl2_LIBS=`$PKG_CONFIG --libs "sdl2" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -2139,22 +2146,22 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        sdl2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "sdl2" 2>&1`
+	        libsdl2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "sdl2" 2>&1`
         else
-	        sdl2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "sdl2" 2>&1`
+	        libsdl2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "sdl2" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
-	echo "$sdl2_PKG_ERRORS" >&5
+	echo "$libsdl2_PKG_ERRORS" >&5
 
 	as_fn_error $? "Package requirements (sdl2) were not met:
 
-$sdl2_PKG_ERRORS
+$libsdl2_PKG_ERRORS
 
 Consider adjusting the PKG_CONFIG_PATH environment variable if you
 installed software in a non-standard prefix.
 
-Alternatively, you may set the environment variables sdl2_CFLAGS
-and sdl2_LIBS to avoid the need to call pkg-config.
+Alternatively, you may set the environment variables libsdl2_CFLAGS
+and libsdl2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -2165,28 +2172,34 @@ as_fn_error $? "The pkg-config script could not be found or is too old.  Make su
 is in your PATH or set the PKG_CONFIG environment variable to the full
 path to pkg-config.
 
-Alternatively, you may set the environment variables sdl2_CFLAGS
-and sdl2_LIBS to avoid the need to call pkg-config.
+Alternatively, you may set the environment variables libsdl2_CFLAGS
+and libsdl2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
 else
-	sdl2_CFLAGS=$pkg_cv_sdl2_CFLAGS
-	sdl2_LIBS=$pkg_cv_sdl2_LIBS
+	libsdl2_CFLAGS=$pkg_cv_libsdl2_CFLAGS
+	libsdl2_LIBS=$pkg_cv_libsdl2_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+	if test "x$libsndifsdl2_reqs" != "x"; then :
+
+     libsndifsdl2_reqs+=", "
 
 fi
+   libsndifsdl2_reqs+="sdl2"
+fi
+
 if test "x$enable_aiff" != "xno"; then :
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sndfile" >&5
-$as_echo_n "checking for sndfile... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libsndfile" >&5
+$as_echo_n "checking for libsndfile... " >&6; }
 
-if test -n "$sndfile_CFLAGS"; then
-    pkg_cv_sndfile_CFLAGS="$sndfile_CFLAGS"
+if test -n "$libsndfile_CFLAGS"; then
+    pkg_cv_libsndfile_CFLAGS="$libsndfile_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sndfile\""; } >&5
@@ -2194,7 +2207,7 @@ if test -n "$sndfile_CFLAGS"; then
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_sndfile_CFLAGS=`$PKG_CONFIG --cflags "sndfile" 2>/dev/null`
+  pkg_cv_libsndfile_CFLAGS=`$PKG_CONFIG --cflags "sndfile" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -2202,8 +2215,8 @@ fi
  else
     pkg_failed=untried
 fi
-if test -n "$sndfile_LIBS"; then
-    pkg_cv_sndfile_LIBS="$sndfile_LIBS"
+if test -n "$libsndfile_LIBS"; then
+    pkg_cv_libsndfile_LIBS="$libsndfile_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sndfile\""; } >&5
@@ -2211,7 +2224,7 @@ if test -n "$sndfile_LIBS"; then
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_sndfile_LIBS=`$PKG_CONFIG --libs "sndfile" 2>/dev/null`
+  pkg_cv_libsndfile_LIBS=`$PKG_CONFIG --libs "sndfile" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -2232,22 +2245,22 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        sndfile_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "sndfile" 2>&1`
+	        libsndfile_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "sndfile" 2>&1`
         else
-	        sndfile_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "sndfile" 2>&1`
+	        libsndfile_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "sndfile" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
-	echo "$sndfile_PKG_ERRORS" >&5
+	echo "$libsndfile_PKG_ERRORS" >&5
 
 	as_fn_error $? "Package requirements (sndfile) were not met:
 
-$sndfile_PKG_ERRORS
+$libsndfile_PKG_ERRORS
 
 Consider adjusting the PKG_CONFIG_PATH environment variable if you
 installed software in a non-standard prefix.
 
-Alternatively, you may set the environment variables sndfile_CFLAGS
-and sndfile_LIBS to avoid the need to call pkg-config.
+Alternatively, you may set the environment variables libsndfile_CFLAGS
+and libsndfile_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -2258,20 +2271,24 @@ as_fn_error $? "The pkg-config script could not be found or is too old.  Make su
 is in your PATH or set the PKG_CONFIG environment variable to the full
 path to pkg-config.
 
-Alternatively, you may set the environment variables sndfile_CFLAGS
-and sndfile_LIBS to avoid the need to call pkg-config.
+Alternatively, you may set the environment variables libsndfile_CFLAGS
+and libsndfile_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
 else
-	sndfile_CFLAGS=$pkg_cv_sndfile_CFLAGS
-	sndfile_LIBS=$pkg_cv_sndfile_LIBS
+	libsndfile_CFLAGS=$pkg_cv_libsndfile_CFLAGS
+	libsndfile_LIBS=$pkg_cv_libsndfile_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+	if test "x$libsndifsdl2_reqs" != "x"; then :
+
+       libsndifsdl2_reqs+=", "
 
 fi
-  libsndif_reqs+=", sndfile"
+     libsndifsdl2_reqs+="sndfile"
+fi
 
 fi
 
@@ -4160,7 +4177,15 @@ unknown)
 esac
 
 
-LIBSNDIFSDL2_REQS=$libsndif_reqs
+LIBSNDIFSDL2_REQS=$libsndifsdl2_reqs
+
+LIBSDL2_NONPKG_CFLAGS=$libsdl2_nonpkg_cflags
+
+LIBSDL2_NONPKG_LIBS=$libsdl2_nonpkg_libs
+
+LIBSNDFILE_NONPKG_CFLAGS=$libsndfile_nonpkg_cflags
+
+LIBSNDFILE_NONPKG_LIBS=$libsndfile_nonpkg_libs
 
 
  if test "x" = ""; then

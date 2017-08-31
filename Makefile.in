@@ -282,6 +282,10 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBSDL2_NONPKG_CFLAGS = @LIBSDL2_NONPKG_CFLAGS@
+LIBSDL2_NONPKG_LIBS = @LIBSDL2_NONPKG_LIBS@
+LIBSNDFILE_NONPKG_CFLAGS = @LIBSNDFILE_NONPKG_CFLAGS@
+LIBSNDFILE_NONPKG_LIBS = @LIBSNDFILE_NONPKG_LIBS@
 LIBSNDIFSDL2_REQS = @LIBSNDIFSDL2_REQS@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
@@ -331,6 +335,10 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 libfizmo_CFLAGS = @libfizmo_CFLAGS@
 libfizmo_LIBS = @libfizmo_LIBS@
+libsdl2_CFLAGS = @libsdl2_CFLAGS@
+libsdl2_LIBS = @libsdl2_LIBS@
+libsndfile_CFLAGS = @libsndfile_CFLAGS@
+libsndfile_LIBS = @libsndfile_LIBS@
 localedir = $(datarootdir)/fizmo/locales
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -342,11 +350,7 @@ program_transform_name = @program_transform_name@
 psdir = @psdir@
 runstatedir = @runstatedir@
 sbindir = @sbindir@
-sdl2_CFLAGS = @sdl2_CFLAGS@
-sdl2_LIBS = @sdl2_LIBS@
 sharedstatedir = @sharedstatedir@
-sndfile_CFLAGS = @sndfile_CFLAGS@
-sndfile_LIBS = @sndfile_LIBS@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
@@ -870,10 +874,11 @@ install-dev:: libsndifsdl2.a
 	echo 'Name: libsndifsdl2' >>$(pkgfile)
 	echo 'Description: libsndifsdl2' >>$(pkgfile)
 	echo 'Version: 0.8.3' >>$(pkgfile)
-	echo 'Requires: libfizmo >= 0.7.15, $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
+	echo 'Requires: $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
 	echo 'Requires.private:' >>$(pkgfile)
-	echo 'Cflags: -I$(pkg_prefix)/include/fizmo $(SOUNDSDL2_NONPKG_CFLAGS)' >>$(pkgfile)
-	echo 'Libs: -L$(pkg_prefix)/lib/fizmo -lsndifsdl2 $(SOUNDSDL2_PKG_LIBS)'  >>$(pkgfile)
+	echo 'Cflags: -I$(pkg_prefix)/include/fizmo' >>$(pkgfile)
+	echo 'Libs: -L$(pkg_prefix)/lib/fizmo -lsndifsdl2 $(LIBSDL2_NONPKG_LIBS) $(LIBSNDFILE_NONPKG_LIBS)'  >>$(pkgfile)
+	echo 'Libs.private:'  >>$(pkgfile)
 	echo >>$(pkgfile)
 
 install-data-local:
