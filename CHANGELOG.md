@@ -1,9 +1,10 @@
 
 
 
-   **Version 0.8.3 — August 14, 2017**
+   **Version 0.8.3 — September 3, 2017**
 
  - Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.
+ - Added missing contributor phrasing to BSD-3 clause. The resulting license now exactly matches the wording used on Github and so also makes the license detection work.
 
 ---
 
