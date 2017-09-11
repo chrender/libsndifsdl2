@@ -16,11 +16,10 @@ Homepage: https://fizmo.spellbreaker.org/
 Package: libsndifsdl2-dev
 Architecture: any
 Depends: ${shlibs:Depends},
+ ${misc:Depends},
  libfizmo-dev,
  libsdl2-dev,
  libsndfile1-dev
-Standards-Version: 4.0.0
- ${misc:Depends}
 Description: SDL2-based sound support for the fizmo interpreter
  This library provides sound functionality related to the fizmo interpreter
  using the SDL2 library. It supports Infocom's .snd files as well as
