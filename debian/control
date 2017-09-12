@@ -1,6 +1,6 @@
 Source: libsndifsdl2
 Section: libdevel
-Priority: extra
+Priority: optional
 Maintainer: Christoph Ender <christoph.ender@spellbreaker.org>
 Build-Depends: debhelper (>= 9.0.0),
  dh-autoreconf,
@@ -10,8 +10,10 @@ Build-Depends: debhelper (>= 9.0.0),
  libfizmo-dev,
  libsdl2-dev,
  libsndfile1-dev
-Standards-Version: 4.0.0
+Standards-Version: 4.1.0
 Homepage: https://fizmo.spellbreaker.org/
+Vcs-Browser: https://github.com/chrender/libsndifsdl2
+Vcs-Git: https://github.com/chrender/libsndifsdl2
 
 Package: libsndifsdl2-dev
 Architecture: any
