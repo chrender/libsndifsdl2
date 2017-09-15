@@ -1,3 +1,12 @@
+libsndifsdl2 (0.8.3-3) unstable; urgency=low
+
+  * Made libsndifsdl2-dev require at least version 0.7.15 of libfizmo-dev due
+    to build changes.
+  * Removed "Vcs-Git" field from control file.
+
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Thu, 14 Sep 2017 21:55:00 +0200
+
+
 libsndifsdl2 (0.8.3-2) unstable; urgency=low
 
   * Switched priority from "extra" to "optional".
