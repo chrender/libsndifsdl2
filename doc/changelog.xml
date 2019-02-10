@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
+  <change version="0.8.4">
+    <datetime day-of-week="Sun" month="2" day="10" hour="12"
+      minute="09" second="35" timezone="CET" year="2019"/>
+    <logentry>Fixed crash when playing internal sound effects 1 or 2.</logentry>
+    <logentry>Fixed multi-second delay before a sound effect would play at all.</logentry>
+    <logentry>Made init_sound accept additional parameter to simplify testing.</logentry>
+    <logentry>Fixed underscores in markdown files.</logentry>
+  </change>
+
   <change version="0.8.3">
     <datetime day-of-week="Sun" month="9" day="3" hour="21"
       minute="34" second="59" timezone="CEST" year="2017"/>

@@ -75,7 +75,7 @@
 
 
 static char *sdl2_interface_name = "libsdl2sound";
-static char *sdl2_interface_version = "0.8.3";
+static char *sdl2_interface_version = "0.8.4";
 
 struct sound_effect {
   Uint8 *data;
@@ -316,7 +316,7 @@ void mixaudio(void *UNUSED(unused), Uint8 *stream, int len) {
 
   while ( (current_effect->nof_repeats != 0) && (len > 0) ) {
     remaining_size
-      = current_effect->nof_frames * sizeof(int) * current_effect->nof_channels
+      = current_effect->nof_frames * sizeof(Sint32) * current_effect->nof_channels
       - current_data_index;
 
     size_to_process
@@ -381,8 +381,9 @@ void mixaudio(void *UNUSED(unused), Uint8 *stream, int len) {
   TRACE_LOG("\n\n[sound]mixaudio call done.\n\n");
 }
 
-
-void sdl2_init_sound() {
+// "absolute_story_file_name" only needs to be set during test cases, if
+// it's NULL, "active_z_story->absollute_file_name" is used instead.
+void sdl2_init_sound(char *absolute_story_file_name) {
   int len;
   char *slashpos, *dotpos;
   int i;
@@ -394,19 +395,26 @@ void sdl2_init_sound() {
 
   TRACE_LOG("[sound]Initializing sound.n");
 
-  if ((slashpos = strrchr(active_z_story->absolute_file_name, '/')) != NULL) {
-    len = slashpos - active_z_story->absolute_file_name;
+  if (absolute_story_file_name == NULL) {
+    absolute_story_file_name = active_z_story->absolute_file_name;
+  }
+
+  if ((slashpos = strrchr(absolute_story_file_name, '/')) != NULL) {
+    len = slashpos - absolute_story_file_name;
     sdl_directory_name = (char*)fizmo_malloc(len + 1);
-    memcpy(sdl_directory_name, active_z_story->absolute_file_name, len);
+    memcpy(sdl_directory_name, absolute_story_file_name, len);
     sdl_directory_name[len] = '\0';
 
-    if ((dotpos = strchr(slashpos + 1, '.')) != NULL)
+    if ((dotpos = strchr(slashpos + 1, '.')) != NULL) {
       len = dotpos - slashpos;
-    else
-      len = strlen(active_z_story->absolute_file_name) - len - 1;
+    }
+    else {
+      len = strlen(absolute_story_file_name) - len - 1;
+    }
 
-    if (len > 6)
+    if (len > 6) {
       len = 6;
+    }
 
     sdl_file_prefix = (char*)fizmo_malloc(len + 1);
     sdl_file_prefix_lower = (char*)fizmo_malloc(len + 1);
@@ -501,6 +509,7 @@ void sdl2_prepare_sound(int UNUSED(sound_nr), int UNUSED(volume),
 static void start_next_effect() {
   SDL_AudioSpec fmt_want;
   Uint32 interval;
+  Uint16 requested_samples;
 
   SDL_PauseAudioDevice(sdl_audio_device_id, 1);
 
@@ -520,11 +529,19 @@ static void start_next_effect() {
 
   current_data_index = 0;
   current_effect = *sdl_sound_effect_fifo;
+  requested_samples = current_effect->nof_frames * current_effect->nof_repeats;
+  if (requested_samples > 512) {
+    // Using the relatively small value 512 here. I've been using 16384
+    // before, which results in less mixaudio-invocations, but also in a
+    // three-second-delay before the sound is started at all.
+    requested_samples = 512;
+  }
+  TRACE_LOG("requested_samples: %u", requested_samples);
 
   TRACE_LOG("\n\n[sound]new effect loaded (%d).\n", sound_effect_top_element);
 
-  fmt_want.format = AUDIO_S32MSB;
-  fmt_want.samples = 16384;
+  fmt_want.format = AUDIO_S32MSB; // 32-bit integer samples in big-endian byte order
+  fmt_want.samples = requested_samples;
   fmt_want.callback = &mixaudio;
   fmt_want.userdata = NULL;
   fmt_want.freq = current_effect->freq;
@@ -603,7 +620,7 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
   SF_INFO sfinfo;
   SNDFILE *sndfile;
   int len;
-  int i;
+  int i,j;
   long sound_blorb_index;
   int fd;
   Uint8 *data_ptr;
@@ -625,12 +642,13 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
 
     if (sound_nr == 1) {
       if (tone880hz_buf == NULL) {
-        tone880hz_buf = fizmo_malloc(TONE_880_HZ_SAMPLE_SIZE * sizeof(int));
+        tone880hz_buf = fizmo_malloc(TONE_880_HZ_SAMPLE_SIZE * sizeof(Sint32));
         data_ptr = tone880hz_buf;
         for (i=0; i<TONE_880_HZ_SAMPLE_SIZE; i++) {
-          *(tone880hz_buf++) = tone880hz[i];
-          for (i=0; i<sizeof(int)-1; i++) {
-            *(tone880hz_buf++) = 0;
+          *(data_ptr++) = tone880hz[i]>>1;
+          *(data_ptr++) = tone880hz[i]<<7;
+          for (j=0; j<sizeof(Sint32)-2; j++) {
+            *(data_ptr++) = 0;
           }
         }
       }
@@ -640,12 +658,14 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
     }
     else if (sound_nr == 2) {
       if (tone330hz_buf == NULL) {
-        tone330hz_buf = fizmo_malloc(TONE_330_HZ_SAMPLE_SIZE * sizeof(int));
+        tone330hz_buf = fizmo_malloc(TONE_330_HZ_SAMPLE_SIZE * sizeof(Sint32));
         data_ptr = tone330hz_buf;
         for (i=0; i<TONE_330_HZ_SAMPLE_SIZE; i++) {
-          *(tone330hz_buf++) = tone330hz[i];
-          for (i=0; i<sizeof(int)-1; i++) {
-            *(tone330hz_buf++) = 0;
+          TRACE_LOG("tone330hz_buf: %p, i: %d\n", tone330hz_buf, i);
+          *(data_ptr++) = tone330hz[i]>>1;
+          *(data_ptr++) = tone330hz[i]<<7;
+          for (j=0; j<sizeof(Sint32)-2; j++) {
+            *(data_ptr++) = 0;
           }
         }
       }
@@ -656,9 +676,11 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
   }
   else {
 #ifdef ENABLE_AIFF_FOR_SOUND_SDL2
+  
     TRACE_LOG("Trying to find blorb sound number %d.\n", sound_nr);
-    if ((sound_blorb_index = active_blorb_interface->get_blorb_offset(
-            active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1) {
+    if ((active_z_story != NULL)
+           && (sound_blorb_index = active_blorb_interface->get_blorb_offset(
+               active_z_story->blorb_map, Z_BLORB_TYPE_SOUND, sound_nr)) != -1) {
       //TRACE_LOG("fd: %d.\n", fd);
       fd = fsi->get_fileno(active_z_story->blorb_file);
       TRACE_LOG("Seeking pos %x\n", sound_blorb_index-8);
@@ -684,7 +706,7 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
         effect->freq = sfinfo.samplerate;
         effect->nof_frames = sfinfo.frames;
         effect->data = fizmo_malloc(
-            sfinfo.frames * sizeof(int) * sfinfo.channels);
+            sfinfo.frames * sizeof(Sint32) * sfinfo.channels);
 
         if (ver < 5) {
           v3_sound_loops = get_v3_sound_loops_from_blorb_map(
@@ -728,8 +750,8 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
           input_ptr = 0;
           while (input_ptr < frames_to_read *  sfinfo.channels) {
             input_data = aiff_input_buffer[input_ptr++];
-            *(data_ptr++) = input_data >> ((sizeof(int)-1) * 8);
-            for (i=0; i<sizeof(int)-1; i++) {
+            *(data_ptr++) = input_data >> ((sizeof(Sint32)-1) * 8);
+            for (i=0; i<sizeof(Sint32)-1; i++) {
               *(data_ptr++) = 0;
             }
           }
@@ -810,7 +832,7 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
       effect->is_internal_effect = false;
       effect->nof_channels = 1;
       effect->freq = frequency;
-      effect->data = fizmo_malloc(effect->nof_frames * sizeof(int));
+      effect->data = fizmo_malloc(effect->nof_frames * sizeof(Sint32));
 
       frames_remaining = effect->nof_frames;
       data_ptr = effect->data;
@@ -840,7 +862,7 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
           // input and signed output.
           *(data_ptr++) = input_byte >> 1;
           *(data_ptr++) = input_byte << 7;
-          for (i=0; i<sizeof(int)-2; i++) {
+          for (i=0; i<sizeof(Sint32)-2; i++) {
             *(data_ptr++) = 0;
           }
         }

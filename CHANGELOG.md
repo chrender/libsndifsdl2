@@ -1,6 +1,16 @@
 
 
 
+   **Version 0.8.4 — Febuary 10, 2019**
+
+ - Fixed crash when playing internal sound effects 1 or 2.
+ - Fixed multi-second delay before a sound effect would play at all.
+ - Made init\_sound accept additional parameter to simplify testing.
+ - Fixed underscores in markdown files.
+
+---
+
+
    **Version 0.8.3 — September 3, 2017**
 
  - Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.
@@ -25,14 +35,14 @@
 
    **Version 0.8.0 — October 9, 2015**
 
- - Implemented SDL2-compatible sound interface, forked from libsoundofsdl. Note: In case you're encountering messages from ALSA containing “snd_pcm_recover” and “underrun” errors, upgrade SDL2 to version 2.0.3.
+ - Implemented SDL2-compatible sound interface, forked from libsoundofsdl. Note: In case you're encountering messages from ALSA containing “snd\_pcm\_recover” and “underrun” errors, upgrade SDL2 to version 2.0.3.
 
 ---
 
 
    **Version 0.7.6 — March 19, 2014**
 
- - Fixed “AC_CONFIG_AUX_DIR” invocation.
+ - Fixed “AC\_CONFIG\_AUX\_DIR” invocation.
  - Added “clean-dev” build target for better cleanup of installed development files, which helps debian packaging.
  - Fix compiler warnings.
  - Added missing license/copyright information.
@@ -73,7 +83,7 @@
 
  - Fixed missing “override” statments for CFLAGS in Makefiles.
  - Fixed $(DESTDIR) evaluation in config.[default|macports].mk.
- - Adapted Makefiles and configuration to use standard GNU Makefile variables instead of INSTALL_PATH and FIZMO_BIN_DIR.
+ - Adapted Makefiles and configuration to use standard GNU Makefile variables instead of INSTALL\_PATH and FIZMO\_BIN\_DIR.
 
 ---
 
@@ -88,7 +98,7 @@
 
    **Version 0.6.1 — March 30, 2009**
 
- - Implemented new ENABLE_AIFF_FOR_SOUND_SDL variable in config files. This allows the sound-sdl-interface to at least play Infocom .snd files when no libsndfile is available.
+ - Implemented new ENABLE\_AIFF\_FOR\_SOUND\_SDL variable in config files. This allows the sound-sdl-interface to at least play Infocom .snd files when no libsndfile is available.
 
 ---
 

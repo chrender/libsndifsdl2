@@ -70,7 +70,7 @@ install-dev:: libsndifsdl2.a
 	echo >>$(pkgfile)
 	echo 'Name: libsndifsdl2' >>$(pkgfile)
 	echo 'Description: libsndifsdl2' >>$(pkgfile)
-	echo 'Version: 0.8.3' >>$(pkgfile)
+	echo 'Version: 0.8.4' >>$(pkgfile)
 	echo 'Requires: $(LIBSNDIFSDL2_REQS)' >>$(pkgfile)
 	echo 'Requires.private:' >>$(pkgfile)
 	echo 'Cflags: -I$(pkg_prefix)/include/fizmo' >>$(pkgfile)

@@ -41,15 +41,15 @@ m4_include(config-flags.m4)
 
 AC_INIT(
  [libsndifsdl2],
- [0.8.3],
+ [0.8.4],
  fizmo@spellbreaker.org,
  libsndifsdl2)
 
 AC_CONFIG_AUX_DIR([.])
 
-libsndifsdl2_reqs="libfizmo >= 0.7.15"
+libsndifsdl2_reqs="libfizmo >= 0.7.16"
 
-PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.15])
+PKG_CHECK_MODULES([libfizmo], [libfizmo >= 0.7.16])
 m4_include(config-libs.m4)
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
