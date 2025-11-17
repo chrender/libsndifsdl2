@@ -111,7 +111,7 @@ endif()
 
 # Store filenames of all files-to-be-compiled in "C_FILES".
 set (c_sources
-  src/sound_sdl/sound_sdl.c)
+  src/sound_sdl2/sound_sdl2.c)
 
 
 # Tell CMake we'd like to create a library named "libsndifsdl2" with the
