@@ -75,7 +75,7 @@
 
 
 static char *sdl2_interface_name = "libsdl2sound";
-static char *sdl2_interface_version = "0.8.4";
+static char *sdl2_interface_version = "0.9.0-beta1";
 
 struct sound_effect {
   Uint8 *data;
