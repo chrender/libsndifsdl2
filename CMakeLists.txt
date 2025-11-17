@@ -94,7 +94,7 @@ endif()
 # ...
 option(ENABLE_AIFF "Enable AIFF" ON)
 if (ENABLE_AIFF)
-  add_definitions(-DENABLE_AIFF)
+  add_definitions(-DENABLE_AIFF_FOR_SOUND_SDL2)
   pkg_check_modules(LIBSNDFILE REQUIRED sndfile)
   list(APPEND required_pkg_libs "sndfile")
 endif()

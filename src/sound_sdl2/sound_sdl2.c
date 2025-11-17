@@ -616,17 +616,18 @@ void sdl2_play_sound(int sound_nr, int volume, int repeats, uint16_t routine) {
   z_file *in;
   int frequency;
   int frames_remaining, frames_to_read;
+  int i,j;
+  Uint8 *data_ptr;
+  int input_ptr;
+  Uint8 input_byte;
 #ifdef ENABLE_AIFF_FOR_SOUND_SDL2
   SF_INFO sfinfo;
   SNDFILE *sndfile;
   int len;
-  int i,j;
   long sound_blorb_index;
   int fd;
-  Uint8 *data_ptr;
   int v3_sound_loops;
-  int input_ptr, input_data;
-  Uint8 input_byte;
+  int input_data;
 #endif // ENABLE_AIFF_FOR_SOUND_SDL2
 
   if (sound_init_performed == false) {
